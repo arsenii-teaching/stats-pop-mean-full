@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xG Squad Sizes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c1410; --panel:#131d18; --panel2:#18241e; --line:#26362d;
+  --ink:#eef4ef; --muted:#93a59a; --accent:#d7ff3f; --accent2:#4fd1ff;
+  --def:#5aa9ff; --mid:#3fe08a; --fwd:#ff6b5a;
+  --pitch1:#1f7a3f; --pitch2:#1b6e38; --chalk:rgba(255,255,255,.55);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45}
+h1,h2,h3,.cond{font-family:"Barlow Condensed",Inter,sans-serif;letter-spacing:.02em}
+.wrap{max-width:1320px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+header h1{margin:0;font-size:38px;font-weight:800;line-height:1;text-transform:uppercase}
+header h1 span{color:var(--accent)}
+header p{margin:6px 0 0;color:var(--muted);max-width:720px}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.panel h2{margin:0 0 10px;font-size:20px;text-transform:uppercase;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.panel h2 small{font-family:Inter;font-size:12px;color:var(--muted);text-transform:none;font-weight:500;letter-spacing:0}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+button{font:600 14px Inter;border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer;transition:.15s}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#10180f;border-color:var(--accent);font-family:"Barlow Condensed";font-size:18px;text-transform:uppercase;padding:8px 18px}
+button.primary:hover{filter:brightness(1.08)}
+button:disabled{opacity:.45;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent;color:var(--muted);padding:8px 12px}
+.seg button.on{background:var(--panel2);color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
+.spacer{flex:1}
+
+/* pitch */
+.pitch{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/4.3;min-height:470px;
+  background:repeating-linear-gradient(180deg,var(--pitch1) 0 9.09%,var(--pitch2) 9.09% 18.18%);
+  box-shadow:inset 0 0 80px rgba(0,0,0,.35)}
+@media(max-width:560px){.pitch{min-height:0;aspect-ratio:3/4.6}.card{width:58px}.card .ph{height:58px}.rows{padding:14px 4px 34px}}
+.pitch svg.lines{position:absolute;inset:0;width:100%;height:100%}
+.rows{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-around;padding:20px 8px 34px}
+.row{display:flex;justify-content:space-evenly;align-items:center;min-height:0}
+.card{width:clamp(62px,9.5vw,92px);background:linear-gradient(160deg,#fbf6dd,#d9cf97);color:#1a1a12;border-radius:10px 10px 8px 8px;
+  box-shadow:0 6px 16px rgba(0,0,0,.45);overflow:hidden;position:relative;transform-origin:center;
+  animation:pop .45s cubic-bezier(.2,1.4,.4,1) both}
+@media(min-width:1000px){.card{width:clamp(62px,6.3vw,92px)}}
+@keyframes pop{from{transform:scale(.2) translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.card .pos{position:absolute;top:4px;left:5px;font:800 12px "Barlow Condensed";padding:0 4px;border-radius:4px;color:#fff}
+.card .xg{position:absolute;top:2px;right:5px;font:800 17px "Barlow Condensed";line-height:1}
+.card .xg small{display:block;font-size:9px;text-align:right;opacity:.6}
+.card .ph{height:clamp(60px,9vw,86px);display:flex;align-items:flex-end;justify-content:center;background:radial-gradient(circle at 50% 70%,rgba(255,255,255,.7),transparent 70%)}
+@media(min-width:1000px){.card .ph{height:clamp(60px,6vw,86px)}}
+.card img{height:100%;width:auto;display:block}
+.card .ini{font:800 26px "Barlow Condensed";color:#6b6440;margin-bottom:12px}
+.card .nm{background:#13201a;color:#fff;font:700 12px "Barlow Condensed";text-transform:uppercase;text-align:center;padding:3px 3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .cl{background:#13201a;color:#9fb3a6;font-size:9px;text-align:center;padding:0 3px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card.hi{outline:3px solid var(--accent);outline-offset:1px}
+.D{background:var(--def)}.M{background:#1fae64}.F{background:var(--fwd)}
+.scoreboard{position:absolute;left:10px;bottom:8px;right:10px;display:flex;justify-content:space-between;align-items:center;font:700 15px "Barlow Condensed";text-transform:uppercase;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.scoreboard .xbar{background:rgba(0,0,0,.55);padding:3px 10px;border-radius:8px;font-size:20px}
+.scoreboard .xbar b{color:var(--accent)}
+.empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#e8f5ea;text-align:center;font:600 22px "Barlow Condensed";text-transform:uppercase;gap:4px}
+.empty span{font:400 13px Inter;text-transform:none;opacity:.8}
+
+/* sample table */
+.calc{margin-top:12px;background:var(--panel2);border-radius:10px;padding:10px 12px;font-size:13px}
+.calc .vals{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.calc .vals span{background:#0f1813;border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-variant-numeric:tabular-nums}
+.calc .eq{font:600 18px "Barlow Condensed";letter-spacing:.03em}
+.calc .eq b{color:var(--accent)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+@media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.stat .l{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.stat .v{font:700 24px "Barlow Condensed";font-variant-numeric:tabular-nums}
+.stat .v.acc{color:var(--accent)} .stat .v.blue{color:var(--accent2)}
+.chart{width:100%;display:block}
+.chart text{fill:var(--muted);font:11px Inter}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin-top:4px}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+label.tog{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer}
+.qs{margin-top:16px}
+.qs ol{margin:6px 0 0;padding-left:20px;color:#cfdcd3}
+.qs li{margin:4px 0}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+.tag{display:inline-block;font:700 11px Inter;padding:2px 7px;border-radius:20px;background:#22342a;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+/* --- sample-size version additions --- */
+.pitch.big{aspect-ratio:auto;min-height:440px}
+.pitch.big .rows{position:relative;inset:auto;justify-content:flex-start;gap:20px;padding:26px 8px 56px}
+.pitch.big .row{flex-wrap:wrap;justify-content:center;gap:10px 6px}
+.pitch.big .card{width:58px}
+.pitch.big .card .ph{height:54px}
+.pitch.big .card .nm{font-size:10px;padding:2px 2px 3px}
+.pitch.big .card .cl{display:none}
+.pitch.big .card .xg{font-size:14px}
+.pitch.big .card .xg small{display:none}
+.pitch.big .card .pos{font-size:10px;top:3px;left:3px;padding:0 3px}
+.pitch.big .card .ini{font-size:20px;margin-bottom:8px}
+.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;margin-top:10px}
+.mini>div{background:#0f1813;border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.mini .l{font-size:11px;color:var(--muted)}
+.mini .v{font:700 18px "Barlow Condensed";font-variant-numeric:tabular-nums}
+table.cmp{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;margin-top:6px}
+table.cmp th{font-weight:600;color:var(--muted);text-align:right;padding:6px 6px;border-bottom:1px solid var(--line);font-size:12px}
+table.cmp td{text-align:right;padding:6px 6px;border-bottom:1px solid #1d2b24}
+table.cmp th:first-child,table.cmp td:first-child,table.cmp th:nth-child(2),table.cmp td:nth-child(2){text-align:left}
+table.cmp tr.cur td{background:#1d2e24;color:#fff}
+table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.tablewrap{overflow-x:auto}
+.ctlrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.ctlrow .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Draft <span>xG</span> Lab <span style="color:var(--ink);opacity:.5">· Squad sizes</span></h1>
+    <p>Draft a random squad of <b>n = 11, 30 or 40</b> players and record its <b>mean expected goals (x̄)</b>. Repeat many times to build the <b>sampling distribution of x̄</b>, then switch the sample size and watch the spread shrink and the shape become more Normal.</p>
+  </div>
+  <span class="tag" id="popTag"></span>
+</header>
+
+<div class="grid">
+  <!-- LEFT: pitch -->
+  <section class="panel">
+    <h2>Your Drafted Squad <small id="formation"></small></h2>
+    <div class="ctlrow">
+      <span class="lbl">Sample size</span>
+      <div class="seg" id="sizeSeg">
+        <button data-n="11">n = 11</button>
+        <button data-n="30" class="on">n = 30</button>
+        <button data-n="40">n = 40</button>
+      </div>
+      <span class="spacer"></span>
+      <div class="seg" id="modeSeg">
+        <button data-mode="srs" class="on" title="Simple random sample">SRS</button>
+        <button data-mode="strat" title="Stratified by position, proportional allocation">Stratified</button>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="primary" id="draft1">⚽ Draft a squad</button>
+      <button id="draft10">+10 drafts</button>
+      <button id="draft100">+100</button>
+      <button id="draft1000">+1000</button>
+    </div>
+    <div class="pitch" id="pitch">
+      <svg class="lines" viewBox="0 0 400 430" preserveAspectRatio="none" aria-hidden="true">
+        <g fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2">
+          <rect x="10" y="10" width="380" height="410" rx="2"/>
+          <circle cx="200" cy="10" r="48"/>
+          <rect x="95" y="345" width="210" height="75"/>
+          <rect x="150" y="390" width="100" height="30"/>
+          <path d="M160 345 A48 48 0 0 1 240 345"/>
+        </g>
+      </svg>
+      <div class="rows" id="rows"></div>
+      <div class="empty" id="empty">Press “Draft a squad”<span id="emptySub"></span></div>
+      <div class="scoreboard" id="board" style="display:none">
+        <span id="draftNo">Draft #0</span>
+        <span class="xbar">x̄ = <b id="xbarBig">–</b> xG</span>
+      </div>
+    </div>
+    <div class="calc" id="calc" style="display:none">
+      <div class="cond" style="font-weight:600;color:var(--muted);text-transform:uppercase;font-size:13px">This sample's xG values (sorted)</div>
+      <div class="vals" id="vals"></div>
+      <div class="eq" id="eq"></div>
+      <div class="mini" id="sampStats"></div>
+    </div>
+  </section>
+
+  <!-- RIGHT: distributions -->
+  <section class="panel">
+    <h2>Population <small>all players with a photo who played this season</small></h2>
+    <svg class="chart" id="popChart" viewBox="0 0 600 204"></svg>
+    <div class="stats" id="popStats"></div>
+
+    <h2 style="margin-top:18px">Sampling distribution of x̄ <small id="modeLabel"></small></h2>
+    <svg class="chart" id="sampChart" viewBox="0 0 600 254"></svg>
+    <div class="legend">
+      <span><i style="background:var(--accent2)"></i>μ (population mean)</span>
+      <span><i style="background:var(--accent)"></i>most recent x̄</span>
+      <span id="normLeg"><i style="background:#ff9ad5"></i><span id="normTxt">Normal model</span></span>
+      <span class="spacer"></span>
+      <label class="tog"><input type="checkbox" id="normTog" checked> show Normal model</label>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="l">Drafts simulated</div><div class="v" id="sK">0</div></div>
+      <div class="stat"><div class="l">Mean of x̄ values</div><div class="v acc" id="sMx">–</div></div>
+      <div class="stat"><div class="l">SD of x̄ values</div><div class="v acc" id="sSx">–</div></div>
+      <div class="stat"><div class="l" id="sThL">Theory: σ/√n</div><div class="v" id="sTh">–</div></div>
+      <div class="stat"><div class="l" id="sFpcL">With FPC √((N−n)/(N−1))</div><div class="v" id="sFpc">–</div></div>
+      <div class="stat"><div class="l">x̄ within ±0.5 of μ</div><div class="v" id="sPct">–</div></div>
+      <div class="stat"><div class="l">Min x̄ / Max x̄</div><div class="v" id="sRange">–</div></div>
+      <div class="stat"><div class="l">Median of x̄ values</div><div class="v" id="sMed">–</div></div>
+      <div class="stat"><div class="l">10% condition (n / N)</div><div class="v" id="sTen">–</div></div>
+    </div>
+    <div class="controls" style="margin:0">
+      <button id="reset">Reset this distribution</button>
+      <button id="fillAll">Simulate 1000 for every n</button>
+    </div>
+  </section>
+</div>
+
+<section class="panel qs">
+  <h2>Compare sample sizes <small>all simulations so far · current setting highlighted</small></h2>
+  <div class="tablewrap">
+  <table class="cmp">
+    <thead><tr><th>Design</th><th>n</th><th>Drafts</th><th>Mean of x̄</th><th>μ</th><th>SD of x̄</th><th>Theory SD</th><th>Min x̄</th><th>Max x̄</th><th>Within ±0.5 of μ</th></tr></thead>
+    <tbody id="cmpBody"></tbody>
+  </table>
+  </div>
+  <div class="note">Theory SD for SRS uses σ/√n × √((N−n)/(N−1)) (exact for sampling without replacement from N = <span class="Nval"></span>). For stratified sampling it is the exact SD of the weighted estimator Σ (N<sub>h</sub>/N)·x̄<sub>h</sub>.</div>
+</section>
+
+<section class="panel qs">
+  <h2>Discussion questions</h2>
+  <ol>
+    <li>Describe the shape of the population distribution of xG. Why is it so strongly right‑skewed?</li>
+    <li>Simulate 1000 drafts for each of n = 11, 30 and 40. Does the mean of the x̄ values change with n? What does that tell you about bias?</li>
+    <li>How does the SD of x̄ change as n increases? Check that it matches σ/√n. By what factor should the SD shrink going from n = 11 to n = 40?</li>
+    <li>Compare the <b>shape</b> of the three sampling distributions. Which is closest to Normal? How does this connect to the Central Limit Theorem and the “n ≥ 30” rule of thumb?</li>
+    <li>Check the 10% condition for n = 40. Why does the FPC value differ more from σ/√n at n = 40 than at n = 11?</li>
+    <li>Switch to <b>Stratified</b>. Does stratifying by position reduce the SD of x̄ at every sample size?</li>
+  </ol>
+</section>
+</div>
+
+<script>
+const IMG = "https://resources.premierleague.com/premierleague25/photos/players/110x140/";
+const IMG_OLD = "https://resources.premierleague.com/premierleague/photos/players/110x140/p";
+function imgFail(el){
+  if(!el.dataset.tried){el.dataset.tried=1;el.src=IMG_OLD+el.dataset.id+".png";return;}
+  const d=document.createElement("div");d.className="ini";d.textContent=el.dataset.ini;el.replaceWith(d);
+}
+const RAW = [["Max Aarons","Bournemouth","D",0.0,0,"232980","England"],["Josh Acheampong","Chelsea","D",0.22,0,"577016","England"],["Tosin Adarabioyo","Chelsea","D",0.93,1,"109646","England"],["Simon Adingra","Brighton and Hove Albion","F",2.46,2,"535818","Cote d’Ivoire"],["Ola Aina","Nottingham Forest","D",0.64,2,"159506","Nigeria"],["Kristoffer Ajer","Brentford","D",0.96,0,"191866","Norway"],["Manuel Akanji","Manchester City","D",1.55,0,"211975","Switzerland"],["Nathan Aké","Manchester City","D",0.22,0,"126184","Netherlands"],["Ali Al-Hamadi","Ipswich Town","F",0.35,0,"462387","Iraq"],["Carlos Alcaraz","Everton","M",0.07,2,"502697","Argentina"],["Trent Alexander-Arnold","Liverpool","D",1.88,3,"169187","England"],["Miguel Almirón","Newcastle United","M",0.52,0,"179018","Paraguay"],["Will Alves","Leicester City","M",0.0,0,"532534","England"],["Carlos Vinícius","Fulham","F",0.04,0,"245824","Brazil"],["Harry Amass","Manchester United","D",0.07,0,"577974","England"],["Sam Amo-Ameyaw","Southampton","M",0.02,0,"499724","England"],["Joachim Andersen","Fulham","D",1.02,0,"174874","Denmark"],["Elliot Anderson","Nottingham Forest","M",2.11,2,"215379","England"],["Michail Antonio","West Ham United","F",2.22,1,"57531","Jamaica"],["Joelinton","Newcastle United","M",3.95,4,"180974","Brazil"],["Julián Araujo","Bournemouth","D",0.0,0,"436893","Mexico"],["Cameron Archer","Southampton","F",5.72,2,"433979","England"],["Joe Aribo","Southampton","M",2.7,3,"193204","Nigeria"],["Adam Armstrong","Southampton","F",3.28,2,"155511","England"],["Taiwo Awoniyi","Nottingham Forest","F",2.12,1,"210156","Nigeria"],["Yasin Ayari","Brighton and Hove Albion","M",2.44,2,"509416","Sweden"],["Jordan Ayew","Leicester City","F",0.46,5,"80146","Ghana"],["Rayan Aït-Nouri","Wolverhampton Wanderers","D",2.69,4,"448514","Algeria"],["Benoît Badiashile","Chelsea","D",0.0,0,"242880","France"],["Leon Bailey","Aston Villa","M",1.73,1,"215711","Jamaica"],["Carlos Baleba","Brighton and Hove Albion","M",3.08,3,"535301","Cameroon"],["Ricardo Pereira","Leicester City","D",0.09,0,"111931","Portugal"],["Ross Barkley","Aston Villa","M",1.76,3,"88894","England"],["Calvin Bassey","Fulham","D",1.02,1,"232892","Nigeria"],["Jan Bednarek","Southampton","D",0.65,2,"171771","Poland"],["Armel Bella-Kotchap","Southampton","D",0.32,0,"477386","Germany"],["Jean-Ricner Bellegarde","Wolverhampton Wanderers","M",1.53,2,"231057","France"],["Rodrigo Bentancur","Tottenham Hotspur","M",1.33,2,"202993","Uruguay"],["Sander Berge","Fulham","M",0.35,0,"207189","Norway"],["Lucas Bergvall","Tottenham Hotspur","M",0.7,0,"570526","Sweden"],["Yves Bissouma","Tottenham Hotspur","M",0.63,2,"227127","Mali"],["Oscar Bobb","Manchester City","M",0.0,0,"477555","Norway"],["Lamare Bogarde","Aston Villa","D",0.04,0,"515597","Netherlands"],["Willy-Arnaud Boly","Nottingham Forest","D",0.07,0,"90585","Cote d’Ivoire"],["Bruno Fernandes","Manchester United","M",9.95,8,"141746","Portugal"],["Willian","Fulham","F",0.28,0,"47431","Brazil"],["Sven Botman","Newcastle United","D",0.59,0,"220237","Netherlands"],["Jarrod Bowen","West Ham United","F",8.65,13,"178186","England"],["Jarrad Branthwaite","Everton","D",1.2,0,"480455","England"],["James Bree","Southampton","D",0.11,0,"184386","England"],["Ben Brereton","Southampton","F",0.91,0,"204814","Chile"],["Nathan Broadhead","Ipswich Town","F",1.73,2,"173818","Wales"],["Armando Broja","Everton","F",0.0,0,"440323","Albania"],["David Brooks","Bournemouth","M",2.52,2,"111317","Wales"],["Emiliano Buendía","Aston Villa","M",0.65,0,"195546","Argentina"],["Santiago Bueno","Wolverhampton Wanderers","D",0.43,0,"231480","Uruguay"],["Facundo Buonanotte","Leicester City","M",3.93,5,"536916","Argentina"],["Cameron Burgess","Ipswich Town","D",1.13,0,"122411","Australia"],["Dan Burn","Newcastle United","D",1.96,1,"78916","England"],["Wes Burns","Ipswich Town","F",0.51,0,"149929","Wales"],["Nélson Semedo","Wolverhampton Wanderers","D",0.89,0,"200402","Portugal"],["Moisés Caicedo","Chelsea","M",0.82,1,"486672","Ecuador"],["Tom Cairney","Fulham","M",0.77,2,"76357","Scotland"],["Jens Cajuste","Ipswich Town","M",0.69,1,"454667","Sweden"],["Riccardo Calafiori","Arsenal","D",0.86,2,"466075","Italy"],["Dominic Calvert-Lewin","Everton","F",6.75,3,"177815","England"],["Pedro Lima","Wolverhampton Wanderers","D",0.06,0,"641221","Brazil"],["Kaelan Casey","West Ham United","D",0.0,0,"518438","England"],["Matty Cash","Aston Villa","D",0.49,1,"199796","Poland"],["Casemiro","Manchester United","M",1.83,1,"61256","Brazil"],["Timothy Castagne","Fulham","D",0.38,0,"166477","Belgium"],["Daniel Podence","Wolverhampton Wanderers","M",0.04,0,"200600","Portugal"],["Trevoh Chalobah","Chelsea","D",0.79,3,"180736","England"],["Conor Chaplin","Ipswich Town","F",1.52,1,"196411","England"],["Federico Chiesa","Liverpool","F",0.34,0,"223541","Italy"],["Ben Chilwell","Crystal Palace","D",0.0,1,"172850","England"],["Hamza Choudhury","Leicester City","M",0.0,0,"197469","Bangladesh"],["Ryan Christie","Bournemouth","M",2.12,2,"158499","Scotland"],["Harry Clarke","Ipswich Town","D",0.08,0,"232228","England"],["Jack Clarke","Ipswich Town","F",1.17,0,"443261","England"],["Nathaniel Clyne","Crystal Palace","D",0.02,0,"57328","England"],["Conor Coady","Leicester City","D",0.43,1,"94147","England"],["Séamus Coleman","Everton","D",0.57,0,"59949","Ireland"],["Nathan Collins","Brentford","D",2.5,2,"432830","Ireland"],["Toby Collyer","Manchester United","M",0.17,0,"490881","England"],["Levi Colwill","Chelsea","D",1.89,2,"460028","England"],["Lewis Cook","Bournemouth","M",0.94,1,"155408","England"],["Maxwel Cornet","Southampton","F",0.0,0,"149519","Cote d’Ivoire"],["Murillo","Nottingham Forest","D",1.42,2,"575476","Brazil"],["Vladimír Coufal","West Ham United","D",0.3,0,"164555","Czech Republic"],["Aaron Cresswell","West Ham United","D",0.23,0,"55459","England"],["Marc Cucurella","Chelsea","D",2.8,5,"179268","Spain"],["Jorge Cuenca","Fulham","D",0.02,0,"246301","Spain"],["Patson Daka","Leicester City","F",1.25,1,"245419","Zambia"],["Diogo Dalot","Manchester United","D",2.03,0,"216051","Portugal"],["Mikkel Damsgaard","Brentford","M",2.83,2,"440089","Denmark"],["Kevin Danso","Tottenham Hotspur","D",0.41,0,"135720","Austria"],["Ben Davies","Tottenham Hotspur","D",0.28,0,"115556","Wales"],["Leif Davis","Ipswich Town","D",0.96,1,"455084","England"],["Craig Dawson","Wolverhampton Wanderers","D",0.49,0,"60232","England"],["Kevin De Bruyne","Manchester City","M",5.07,4,"61366","Belgium"],["Bobby De Cordova-Reid","Leicester City","F",0.79,1,"96994","Jamaica"],["Liam Delap","Ipswich Town","F",0.0,12,"463034","England"],["Justin Devenny","Crystal Palace","M",0.76,1,"489706","Northern Ireland"],["Kiernan Dewsbury-Hall","Chelsea","M",0.22,0,"215413","England"],["Amad Diallo","Manchester United","F",4.68,8,"493250","Cote d’Ivoire"],["Tyler Dibling","Southampton","M",2.56,2,"496661","England"],["Lucas Digne","Aston Villa","D",0.8,0,"101188","France"],["Issa Diop","Fulham","D",0.53,0,"219924","France"],["Axel Disasi","Aston Villa","D",0.28,1,"220362","France"],["Matt Doherty","Wolverhampton Wanderers","D",1.04,2,"87835","Ireland"],["Jérémy Doku","Manchester City","F",1.32,3,"248875","Belgium"],["Nicolás Domínguez","Nottingham Forest","M",1.53,0,"250199","Argentina"],["Alfie Dorrington","Tottenham Hotspur","D",0.0,0,"519321","England"],["Cheick Doucouré","Crystal Palace","M",0.4,0,"438464","Mali"],["Flynn Downes","Southampton","M",0.63,1,"220585","England"],["Tommy Doyle","Wolverhampton Wanderers","M",0.55,0,"220394","England"],["Radu Dragusin","Tottenham Hotspur","D",0.12,0,"493125","Romania"],["Lewis Dunk","Brighton and Hove Albion","D",0.81,0,"83299","England"],["Jhon Durán","Aston Villa","F",4.86,7,"476344","Colombia"],["Luis Díaz","Liverpool","F",12.02,13,"244731","Colombia"],["George Edmundson","Ipswich Town","D",0.0,0,"214964","England"],["Samuel Edozie","Southampton","M",0.0,0,"490503","England"],["Ronnie Edwards","Southampton","D",0.0,0,"500926","England"],["Bilal El Khannouss","Leicester City","M",1.31,2,"513527","Morocco"],["Anthony Elanga","Nottingham Forest","F",4.47,6,"449434","Sweden"],["Harvey Elliott","Liverpool","M",1.76,1,"444884","England"],["Julio Enciso","Ipswich Town","M",1.75,2,"474120","Paraguay"],["Wataru Endo","Liverpool","M",0.0,0,"158983","Japan"],["Christian Eriksen","Manchester United","M",1.36,1,"80607","Denmark"],["Mateus Fernandes","Southampton","M",4.01,2,"551226","Portugal"],["Pervis Estupiñán","Brighton and Hove Albion","D",1.17,1,"204214","Ecuador"],["Jonny Evans","Manchester United","D",0.13,0,"37642","Northern Ireland"],["Eberechi Eze","Crystal Palace","M",10.5,8,"232413","England"],["Wout Faes","Leicester City","D",1.53,1,"218218","Belgium"],["Abdul Fatawu","Leicester City","F",0.42,0,"531442","Ghana"],["Evan Ferguson","West Ham United","F",0.54,1,"487117","Ireland"],["Enzo Fernández","Chelsea","M",6.13,6,"448047","Argentina"],["Jota Silva","Nottingham Forest","F",2.11,3,"510500","Portugal"],["Phil Foden","Manchester City","M",5.16,7,"209244","England"],["Wesley Fofana","Chelsea","D",0.44,0,"444463","France"],["Carlos Forbs","Wolverhampton Wanderers","F",0.14,0,"463212","Portugal"],["Ryan Fraser","Southampton","M",0.0,0,"90105","Scotland"],["Fábio Carvalho","Brentford","M",2.51,2,"244858","Portugal"],["Jorginho","Arsenal","M",0.06,0,"85955","Italy"],["João Félix","Chelsea","F",2.23,1,"428399","Portugal"],["Niclas Füllkrug","West Ham United","F",2.17,3,"91889","Germany"],["Cody Gakpo","Liverpool","F",7.09,10,"243298","Netherlands"],["Gonçalo Guedes","Wolverhampton Wanderers","F",3.2,2,"181284","Portugal"],["Alejandro Garnacho","Manchester United","F",7.33,6,"493105","Argentina"],["James Garner","Everton","M",0.67,0,"232928","England"],["Tyrique George","Chelsea","F",0.2,1,"550615","England"],["Morgan Gibbs-White","Nottingham Forest","M",6.34,7,"222531","England"],["Billy Gilmour","Brighton and Hove Albion","M",0.08,0,"243568","Scotland"],["Ben Godfrey","Ipswich Town","D",0.0,0,"198826","England"],["Martial Godo","Fulham","F",0.0,0,"573062","Cote d’Ivoire"],["Michael Golding","Leicester City","M",0.0,0,"549640","England"],["Toti Gomes","Wolverhampton Wanderers","D",0.73,0,"510362","Portugal"],["Beto","Everton","F",7.86,8,"486385","Guinea-Bissau"],["João Gomes","Wolverhampton Wanderers","M",2.89,3,"448089","Brazil"],["Joe Gomez","Liverpool","D",0.33,0,"171287","England"],["Anthony Gordon","Newcastle United","F",8.03,6,"232826","England"],["Jack Grealish","Manchester City","M",1.13,1,"114283","England"],["Jacob Greaves","Ipswich Town","D",1.31,1,"449429","England"],["Brajan Gruda","Brighton and Hove Albion","M",1.21,1,"513433","Germany"],["Idrissa Gueye","Everton","M",1.06,0,"80801","Senegal"],["Bruno Guimarães","Newcastle United","M",4.31,5,"208706","Brazil"],["Marc Guiu","Chelsea","F",0.0,0,"499309","Spain"],["Malo Gusto","Chelsea","D",1.7,0,"482609","France"],["Marc Guéhi","Crystal Palace","D",1.98,3,"209036","England"],["Josko Gvardiol","Manchester City","D",4.59,5,"477424","Croatia"],["Ilkay Gündogan","Manchester City","M",3.23,1,"59859","Germany"],["Erling Haaland","Manchester City","F",22.01,22,"223094","Norway"],["Lewis Hall","Newcastle United","D",0.41,0,"487838","England"],["Marcus Harness","Ipswich Town","M",0.0,0,"167191","Ireland"],["Taylor Harwood-Bellis","Southampton","D",1.79,1,"245719","England"],["Kai Havertz","Arsenal","F",9.56,9,"219847","Germany"],["Ayden Heaven","Manchester United","D",0.0,0,"606745","England"],["Rico Henry","Brentford","D",0.0,0,"194010","England"],["Rodri","Manchester City","M",0.0,0,"220566","Spain"],["James Hill","Bournemouth","D",0.29,0,"463981","England"],["Jack Hinshelwood","Brighton and Hove Albion","M",2.67,5,"532529","England"],["George Hirst","Ipswich Town","F",2.13,3,"222625","Scotland"],["Andreas Pereira","Fulham","M",3.81,2,"156689","Brazil"],["Callum Hudson-Odoi","Nottingham Forest","F",2.47,5,"209046","England"],["Dean Huijsen","Bournemouth","D",1.87,3,"554605","Spain"],["Omari Hutchinson","Ipswich Town","F",2.85,3,"503301","England"],["Hwang Hee-Chan","Wolverhampton Wanderers","F",0.8,2,"184754","South Korea"],["Rasmus Højlund","Manchester United","F",5.24,4,"497894","Denmark"],["Danny Ings","West Ham United","F",2.27,1,"84939","England"],["Tim Iroegbunam","Everton","M",0.24,0,"490094","England"],["Andy Irving","West Ham United","M",0.12,0,"229384","Scotland"],["Alexander Isak","Newcastle United","F",20.42,23,"219168","Sweden"],["Alex Iwobi","Fulham","F",4.72,9,"153133","Nigeria"],["Nicolas Jackson","Chelsea","F",12.34,10,"517052","Senegal"],["Reece James","Chelsea","D",0.44,1,"225796","England"],["Vitaly Janelt","Brentford","M",0.82,1,"204580","Germany"],["Daniel Jebbison","Bournemouth","F",0.99,1,"523700","Canada"],["Mathias Jensen","Brentford","M",0.24,0,"207283","Denmark"],["Raúl Jiménez","Fulham","F",11.99,12,"102057","Mexico"],["Ben Johnson","Ipswich Town","D",1.06,1,"222018","England"],["Brennan Johnson","Tottenham Hotspur","F",10.4,11,"242898","Wales"],["Curtis Jones","Liverpool","M",4.34,3,"206915","England"],["João Pedro","Brighton and Hove Albion","F",8.9,10,"475168","Brazil"],["James Justin","Leicester City","D",1.5,2,"220627","England"],["Ferdi Kadioglu","Brighton and Hove Albion","M",0.44,1,"231416","Turkey"],["Daichi Kamada","Crystal Palace","M",1.09,0,"209400","Japan"],["Boubacar Kamara","Aston Villa","M",0.82,1,"226944","France"],["Michael Keane","Everton","D",0.62,3,"106611","England"],["Lloyd Kelly","Newcastle United","D",0.41,0,"235530","England"],["Milos Kerkez","Bournemouth","D",0.59,2,"544877","Hungary"],["Maximilian Kilman","West Ham United","D",1.65,0,"214048","England"],["Kim Ji-Soo","Brentford","D",0.0,0,"570241","South Korea"],["Josh King","Fulham","M",0.32,0,"577725","England"],["Jakub Kiwior","Arsenal","D",0.17,1,"440854","Poland"],["Justin Kluivert","Bournemouth","F",10.11,12,"222683","Netherlands"],["Yunus Konak","Brentford","M",0.15,0,"628204","Turkey"],["Ibrahima Konaté","Liverpool","D",1.77,1,"204716","France"],["Ezri Konsa","Aston Villa","D",1.28,2,"199798","England"],["Mateo Kovacic","Manchester City","M",1.88,6,"91651","Croatia"],["Emil Krafth","Newcastle United","D",0.03,0,"111773","Sweden"],["Victor Kristiansen","Leicester City","D",0.13,0,"481510","Denmark"],["Mohammed Kudus","West Ham United","M",6.9,5,"460842","Ghana"],["Dejan Kulusevski","Tottenham Hotspur","M",4.23,7,"445044","Sweden"],["Maxence Lacroix","Crystal Palace","D",3.46,1,"437499","France"],["Adam Lallana","Southampton","M",0.17,0,"39155","England"],["Tariq Lamptey","Brighton and Hove Albion","D",0.39,2,"232792","Ghana"],["Will Lankshear","Tottenham Hotspur","F",0.0,0,"552427","England"],["Roméo Lavia","Chelsea","M",0.26,0,"514356","Belgium"],["Mario Lemina","Wolverhampton Wanderers","M",1.4,1,"151086","Gabon"],["Jefferson Lerma","Crystal Palace","M",1.09,0,"152551","Colombia"],["Rico Lewis","Manchester City","D",1.38,1,"477064","England"],["Keane Lewis-Potter","Brentford","F",3.06,1,"249231","England"],["Myles Lewis-Skelly","Arsenal","M",0.16,1,"499169","England"],["Victor Lindelöf","Manchester United","D",0.0,0,"184667","Sweden"],["Jesper Lindstrøm","Everton","M",2.12,0,"463903","Denmark"],["Luis Guilherme","West Ham United","F",0.42,0,"577114","Brazil"],["Tino Livramento","Newcastle United","D",0.33,0,"441191","England"],["Pedro Neto","Chelsea","F",3.5,4,"247632","Portugal"],["Sean Longstaff","Newcastle United","M",0.6,0,"180135","England"],["Sasa Lukic","Fulham","M",1.16,0,"212314","Serbia"],["Massimo Luongo","Ipswich Town","M",0.0,0,"106606","Australia"],["Ian Maatsen","Aston Villa","D",0.86,1,"441302","Netherlands"],["Alexis Mac Allister","Liverpool","M",2.83,5,"243016","Argentina"],["James Maddison","Tottenham Hotspur","M",5.83,9,"172780","England"],["Noni Madueke","Chelsea","F",9.64,7,"248857","England"],["Paris Maghoma","Brentford","M",0.12,0,"220695","England"],["Harry Maguire","Manchester United","D",1.82,1,"95658","England"],["Kobbie Mainoo","Manchester United","M",0.77,0,"516895","England"],["Tyrell Malacia","Manchester United","D",0.0,0,"222690","Netherlands"],["Orel Mangala","Everton","M",1.12,1,"179519","Belgium"],["Ryan Manning","Southampton","D",0.35,0,"204863","Ireland"],["Solly March","Brighton and Hove Albion","M",0.09,0,"109345","England"],["Gabriel Martinelli","Arsenal","F",7.41,8,"444145","Brazil"],["Lisandro Martínez","Manchester United","D",1.3,2,"221820","Argentina"],["Jean-Philippe Mateta","Crystal Palace","F",13.53,14,"231747","France"],["Stephy Mavididi","Leicester City","F",1.84,4,"154048","England"],["Konstantinos Mavropanos","West Ham United","D",1.54,0,"233963","Greece"],["Noussair Mazraoui","Manchester United","D",0.68,0,"230001","Morocco"],["Bryan Mbeumo","Brentford","M",12.26,20,"446008","Cameroon"],["James McAtee","Manchester City","M",2.8,3,"432714","England"],["Kasey McAteer","Leicester City","M",1.03,1,"461587","Ireland"],["John McGinn","Aston Villa","M",3.13,1,"122806","Scotland"],["Dwight McNeil","Everton","F",1.09,4,"433154","England"],["Scott McTominay","Manchester United","M",0.07,0,"195851","Scotland"],["Ben Mee","Brentford","D",0.0,0,"51927","England"],["Jayden Meghoma","Brentford","D",0.0,0,"499717","England"],["Sam Morsy","Ipswich Town","M",0.44,1,"74944","Egypt"],["Mikel Merino","Arsenal","M",5.91,7,"195384","Spain"],["Nikola Milenkovic","Nottingham Forest","D",4.02,5,"227444","Serbia"],["Lewis Miley","Newcastle United","M",0.55,1,"547719","England"],["James Milner","Brighton and Hove Albion","M",0.16,0,"15157","England"],["Tyrone Mings","Aston Villa","D",0.82,0,"149484","England"],["Yankuba Minteh","Brighton and Hove Albion","F",4.11,6,"592031","Gambia"],["Tyrick Mitchell","Crystal Palace","D",1.31,0,"244723","England"],["Kaoru Mitoma","Brighton and Hove Albion","M",9.16,10,"451340","Japan"],["Jakub Moder","Brighton and Hove Albion","M",0.0,0,"243505","Poland"],["Mikey Moore","Tottenham Hotspur","F",0.2,0,"499721","England"],["Savinho","Manchester City","F",5.01,1,"510281","Brazil"],["Álex Moreno","Nottingham Forest","D",0.0,0,"106468","Spain"],["Yerson Mosquera","Wolverhampton Wanderers","D",0.35,0,"501837","Colombia"],["Bernardo Silva","Manchester City","M",3.9,4,"165809","Portugal"],["Mason Mount","Manchester United","M",3.31,1,"184341","England"],["Divin Mubama","Manchester City","F",0.04,0,"487837","England"],["Mykhailo Mudryk","Chelsea","M",0.25,0,"465920","Ukraine"],["Rodrigo Muniz","Fulham","F",5.81,8,"244042","Brazil"],["Jacob Murphy","Newcastle United","M",5.72,8,"114243","England"],["Daniel Muñoz","Crystal Palace","D",4.93,4,"247348","Colombia"],["Vitalii Mykolenko","Everton","D",0.49,1,"224967","Ukraine"],["Igor Thiago","Brentford","F",0.13,0,"502500","Brazil"],["Wilfred Ndidi","Leicester City","M",2.01,0,"203341","Nigeria"],["Kosta Nedeljkovic","Aston Villa","D",0.0,0,"578545","Serbia"],["Reiss Nelson","Fulham","F",1.1,1,"200641","England"],["Eddie Nketiah","Crystal Palace","F",5.74,3,"205533","England"],["Christopher Nkunku","Chelsea","F",4.83,3,"213198","France"],["Matheus Nunes","Manchester City","M",1.22,1,"465351","Portugal"],["Ethan Nwaneri","Arsenal","M",1.18,4,"499175","England"],["Christian Nørgaard","Brentford","M",4.36,5,"128295","Denmark"],["Darwin Núñez","Liverpool","F",5.71,5,"447203","Uruguay"],["Jake O'Brien","Everton","D",0.78,2,"512462","Ireland"],["Nico O'Reilly","Manchester City","M",1.29,2,"472769","England"],["Dara O'Shea","Ipswich Town","D",1.27,0,"216616","Ireland"],["Wilson Odobert","Tottenham Hotspur","F",1.61,1,"550839","France"],["Chiedozie Ogbene","Ipswich Town","F",0.0,0,"229164","Ireland"],["Caleb Okoli","Leicester City","D",0.62,1,"473341","Italy"],["Amadou Onana","Aston Villa","M",2.12,3,"449871","Belgium"],["Paul Onuachu","Southampton","F",3.62,4,"147611","Nigeria"],["Frank Onyeka","Brentford","M",0.0,0,"428580","Nigeria"],["Lewis Orford","West Ham United","M",0.03,0,"518442","England"],["William Osula","Newcastle United","F",0.16,1,"538207","Denmark"],["Dango Ouattara","Bournemouth","F",8.36,7,"533463","Burkina Faso"],["Renato Veiga","Chelsea","M",0.15,0,"551230","Portugal"],["Cole Palmer","Chelsea","M",17.28,15,"244851","England"],["Emerson","West Ham United","D",1.95,2,"109533","Italy"],["Thomas Partey","Arsenal","M",2.29,4,"167199","Ghana"],["Nathan Patterson","Everton","D",0.07,0,"243571","Scotland"],["Kalvin Phillips","Ipswich Town","M",0.43,0,"155405","England"],["Jaden Philogene","Ipswich Town","F",0.47,2,"481624","England"],["Ethan Pinnock","Brentford","D",1.09,2,"231065","Jamaica"],["Pedro Porro","Tottenham Hotspur","D",1.6,2,"441164","Spain"],["Jarell Quansah","Liverpool","D",0.1,0,"441428","England"],["Jacob Ramsey","Aston Villa","M",1.57,1,"232653","England"],["Marcus Rashford","Aston Villa","F",3.06,6,"176297","England"],["Harrison Reed","Fulham","M",0.23,0,"153366","England"],["Chadi Riad","Crystal Palace","D",0.0,0,"515621","Morocco"],["Declan Rice","Arsenal","M",3.51,4,"204480","England"],["Chris Richards","Crystal Palace","D",1.38,1,"427623","United States"],["Andy Robertson","Liverpool","D",1.17,0,"122798","Scotland"],["Antonee Robinson","Fulham","D",0.69,0,"169528","United States"],["Morato","Nottingham Forest","D",0.18,0,"485047","Brazil"],["Guido Rodríguez","West Ham United","M",0.23,0,"197024","Argentina"],["Mads Roerslev","Brentford","D",0.2,0,"226956","Denmark"],["Morgan Rogers","Aston Villa","F",6.58,8,"244850","England"],["Cristian Romero","Tottenham Hotspur","D",1.59,1,"221632","Argentina"],["Georginio Rutter","Brighton and Hove Albion","F",4.64,5,"463067","France"],["Bukayo Saka","Arsenal","F",6.85,6,"223340","England"],["Mohamed Salah","Liverpool","F",25.37,29,"118748","Egypt"],["William Saliba","Arsenal","D",2.28,2,"462424","France"],["Jadon Sancho","Manchester United","F",2.17,3,"209243","England"],["Ibrahim Sangaré","Nottingham Forest","M",0.02,0,"210462","Cote d’Ivoire"],["Matheus Cunha","Wolverhampton Wanderers","F",8.63,15,"430871","Brazil"],["Diego Carlos","Aston Villa","D",0.65,0,"165659","Brazil"],["Pablo Sarabia","Wolverhampton Wanderers","M",2.88,3,"88484","Spain"],["Jeremy Sarmiento","Brighton and Hove Albion","M",0.0,0,"441192","Ecuador"],["Ismaïla Sarr","Crystal Palace","F",10.72,8,"232185","Senegal"],["Pape Sarr","Tottenham Hotspur","M",3.72,3,"482442","Senegal"],["Dane Scarlett","Tottenham Hotspur","F",0.04,0,"490145","England"],["Kevin Schade","Brentford","M",8.2,11,"513418","Germany"],["Jeffrey Schlupp","Crystal Palace","M",0.16,0,"86417","Ghana"],["Fabian Schär","Newcastle United","D",3.8,4,"119471","Switzerland"],["Alex Scott","Bournemouth","M",0.75,0,"503139","England"],["Antoine Semenyo","Bournemouth","F",9.98,11,"437730","Ghana"],["Marcos Senesi","Bournemouth","D",0.84,0,"221466","Argentina"],["Ryan Sessegnon","Fulham","M",1.64,4,"184349","England"],["Luke Shaw","Manchester United","D",0.03,0,"106760","England"],["Luis Sinisterra","Bournemouth","F",1.21,1,"224995","Colombia"],["Oliver Skipp","Leicester City","M",0.0,0,"209042","England"],["Will Smallbone","Southampton","M",0.56,1,"214466","Ireland"],["Adam Smith","Bournemouth","D",0.65,0,"54469","England"],["Emile Smith Rowe","Fulham","M",4.54,6,"209289","England"],["Dominic Solanke","Tottenham Hotspur","F",10.97,9,"154566","England"],["Carlos Soler","West Ham United","M",1.85,1,"224860","Spain"],["Son Heung-Min","Tottenham Hotspur","F",7.35,7,"85971","South Korea"],["Ramón Sosa","Nottingham Forest","F",1.01,1,"502222","Paraguay"],["Tomás Soucek","West Ham United","M",6.9,9,"215439","Czech Republic"],["Boubakary Soumaré","Leicester City","M",0.26,0,"225902","France"],["Djed Spence","Tottenham Hotspur","D",0.56,1,"232859","England"],["Jay Stansfield","Fulham","F",0.0,0,"490146","England"],["Jack Stephens","Southampton","D",0.57,1,"88900","England"],["Raheem Sterling","Arsenal","F",0.0,0,"103955","England"],["Ross Stewart","Southampton","F",1.1,1,"230348","Scotland"],["John Stones","Manchester City","D",0.43,2,"97299","England"],["Jørgen Strand Larsen","Wolverhampton Wanderers","F",10.27,14,"247412","Norway"],["Yukinari Sugawara","Southampton","D",0.49,1,"219279","Japan"],["Kamaldeen Sulemana","Southampton","M",1.49,1,"504783","Ghana"],["Crysencio Summerville","West Ham United","F",1.63,1,"450070","Netherlands"],["Sam Szmodics","Ipswich Town","M",3.41,4,"172453","Ireland"],["Dominik Szoboszlai","Liverpool","M",7.34,6,"424876","Hungary"],["Matt Targett","Newcastle United","D",0.0,0,"169359","England"],["James Tarkowski","Everton","D",1.31,1,"17761","England"],["Chiquinho","Wolverhampton Wanderers","F",0.0,0,"510363","Portugal"],["Marcus Tavernier","Bournemouth","M",5.48,3,"201658","England"],["Charlie Taylor","Southampton","D",0.0,0,"103914","England"],["Jack Taylor","Ipswich Town","M",0.74,1,"231899","Ireland"],["Diogo Jota","Liverpool","F",7.92,6,"194634","Portugal"],["Kenny Tete","Fulham","D",1.36,0,"167074","Netherlands"],["Luke Thomas","Leicester City","D",0.36,0,"244619","England"],["Youri Tielemans","Aston Villa","M",3.32,3,"166989","Belgium"],["Kieran Tierney","Arsenal","D",0.36,1,"192895","Scotland"],["Jurriën Timber","Arsenal","D",1.22,1,"445122","Netherlands"],["Jean-Clair Todibo","West Ham United","D",0.36,0,"462116","France"],["Harry Toffolo","Nottingham Forest","D",0.02,0,"114241","England"],["Lucas Paquetá","West Ham United","M",5.32,4,"224024","Brazil"],["Takehiro Tomiyasu","Arsenal","D",0.18,0,"223723","Japan"],["Sandro Tonali","Newcastle United","M",4.4,4,"432422","Italy"],["Pau Torres","Aston Villa","D",0.52,0,"244954","Spain"],["Conor Townsend","Ipswich Town","D",0.03,0,"108053","England"],["Adama Traoré","Fulham","F",4.0,2,"159533","Spain"],["Ryan Trevitt","Brentford","M",0.0,0,"591357","England"],["André","Wolverhampton Wanderers","M",0.42,0,"509291","Brazil"],["Kieran Trippier","Newcastle United","D",0.12,0,"77794","England"],["Leandro Trossard","Arsenal","F",7.21,8,"116216","Belgium"],["Kostas Tsimikas","Liverpool","D",0.38,0,"214285","Greece"],["Axel Tuanzebe","Ipswich Town","D",0.2,0,"180804","DR Congo"],["Destiny Udogie","Tottenham Hotspur","D",0.3,0,"487053","Italy"],["Manuel Ugarte","Manchester United","M",1.01,1,"232112","Uruguay"],["Lesley Ugochukwu","Southampton","M",0.0,1,"503714","France"],["Jamie Vardy","Leicester City","F",11.22,9,"101668","England"],["Joël Veltman","Brighton and Hove Albion","D",0.47,0,"111478","Netherlands"],["Jannik Vestergaard","Leicester City","D",0.1,0,"93100","Denmark"],["Kyle Walker","Manchester City","D",0.14,0,"58621","England"],["Kyle Walker-Peters","Southampton","D",0.84,0,"158534","England"],["Aaron Wan-Bissaka","West Ham United","D",1.19,2,"214590","England"],["Joel Ward","Crystal Palace","D",0.0,0,"55494","England"],["James Ward-Prowse","West Ham United","M",1.65,1,"101178","England"],["Ollie Watkins","Aston Villa","F",15.38,16,"178301","England"],["Adam Webster","Brighton and Hove Albion","D",0.25,0,"110735","England"],["Danny Welbeck","Brighton and Hove Albion","F",9.57,10,"50175","England"],["Timo Werner","Tottenham Hotspur","F",0.98,0,"165153","Germany"],["Adam Wharton","Crystal Palace","M",0.37,0,"496221","England"],["Ben White","Arsenal","D",0.46,0,"198869","England"],["Mats Wieffer","Brighton and Hove Albion","M",0.75,1,"467779","Netherlands"],["Neco Williams","Nottingham Forest","D",2.3,1,"215136","Wales"],["Joe Willock","Newcastle United","M",1.63,0,"200089","England"],["Harry Wilson","Fulham","M",4.2,6,"153682","Wales"],["Callum Wilson","Newcastle United","F",0.38,0,"75115","England"],["Harry Winks","Leicester City","M",0.22,0,"157668","England"],["Yoane Wissa","Brentford","M",18.59,19,"216646","DR Congo"],["Nathan Wood","Southampton","D",0.23,0,"244845","England"],["Chris Wood","Nottingham Forest","F",13.35,20,"60689","New Zealand"],["Luke Woolfenden","Ipswich Town","D",0.03,0,"220583","England"],["Yehor Yarmoliuk","Brentford","M",0.61,0,"508395","Ukraine"],["Ryan Yates","Nottingham Forest","M",2.3,2,"204968","England"],["Leny Yoro","Manchester United","D",0.7,0,"550864","France"],["Ashley Young","Everton","D",0.27,1,"18892","England"],["Illia Zabarnyi","Bournemouth","D",1.27,0,"477580","Ukraine"],["Oleksandr Zinchenko","Arsenal","D",0.65,0,"206325","Ukraine"],["Joshua Zirkzee","Manchester United","F",4.82,3,"458249","Netherlands"],["Eric da Silva Moreira","Nottingham Forest","F",0.0,0,"569014","Germany"],["Richarlison","Tottenham Hotspur","F",3.72,4,"212319","Brazil"],["Gabriel Jesus","Arsenal","F",2.99,3,"205651","Brazil"],["Matthijs de Ligt","Manchester United","D",2.46,2,"209365","Netherlands"],["Evanilson","Bournemouth","F",12.49,10,"444102","Brazil"],["Antony","Manchester United","F",1.02,0,"467169","Brazil"],["Rúben Dias","Manchester City","D",1.5,0,"171314","Portugal"],["Gabriel Magalhães","Arsenal","D",2.61,3,"226597","Brazil"],["Danilo","Nottingham Forest","M",0.0,0,"513046","Brazil"],["Igor Julio","Brighton and Hove Albion","D",0.05,0,"223434","Brazil"],["Virgil van Dijk","Liverpool","D",2.24,3,"97032","Netherlands"],["Jan Paul van Hecke","Brighton and Hove Albion","D",1.34,1,"469142","Netherlands"],["Micky van de Ven","Tottenham Hotspur","D",0.57,0,"491279","Netherlands"],["Edson Álvarez","West Ham United","M",0.38,0,"213999","Mexico"],["Odsonne Édouard","Leicester City","F",0.39,0,"199670","France"],["Martin Ødegaard","Arsenal","M",4.81,3,"184029","Norway"],["Enes Ünal","Bournemouth","F",2.74,2,"168636","Turkey"]];
+const P = RAW.map(([name,club,pos,xg,goals,id,country])=>({name,club,pos,xg,goals,id,country}));
+const N = P.length;
+const mu = P.reduce((s,p)=>s+p.xg,0)/N;
+const sigma = Math.sqrt(P.reduce((s,p)=>s+(p.xg-mu)**2,0)/N);
+const strata = {D:P.filter(p=>p.pos==="D"),M:P.filter(p=>p.pos==="M"),F:P.filter(p=>p.pos==="F")};
+const POSNAME = {D:"DEF",M:"MID",F:"FWD"};
+const SIZES = [11,30,40];
+// proportional allocation to strata (largest-remainder rounding)
+const ALLOC = {};
+SIZES.forEach(k=>{
+  const raw={},a={};let used=0;
+  for(const h of ["D","M","F"]){raw[h]=k*strata[h].length/N;a[h]=Math.floor(raw[h]);used+=a[h];}
+  ["D","M","F"].sort((x,y)=>(raw[y]-a[y])-(raw[x]-a[x])).slice(0,k-used).forEach(h=>a[h]++);
+  ALLOC[k]=a;
+});
+
+const $=id=>document.getElementById(id);
+const f2=x=>x.toFixed(2);
+const sum=a=>a.reduce((s,v)=>s+v,0);
+const mean=a=>sum(a)/a.length;
+const sd=a=>{if(a.length<2)return NaN;const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1));};
+function median(s){const k=s.length;return k%2?s[(k-1)/2]:(s[k/2-1]+s[k/2])/2;}
+function quartiles(a){const s=a.slice().sort((x,y)=>x-y),k=s.length,h=Math.floor(k/2);
+  return {min:s[0],q1:median(s.slice(0,h)),med:median(s),q3:median(s.slice(k%2?h+1:h)),max:s[k-1]};}
+
+// sampling without replacement (partial Fisher–Yates)
+function pick(arr,k){const a=arr.slice();for(let i=0;i<k;i++){const j=i+Math.floor(Math.random()*(a.length-i));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,k);}
+function draw(mode,n){
+  if(mode==="srs"){const s=pick(P,n);return {team:s,xbar:mean(s.map(p=>p.xg))};}
+  let team=[],est=0;
+  for(const h of ["D","M","F"]){const s=pick(strata[h],ALLOC[n][h]);team=team.concat(s);est+=(strata[h].length/N)*mean(s.map(p=>p.xg));}
+  return {team,xbar:est};
+}
+const srsSE=n=>sigma/Math.sqrt(n);
+const srsFPC=n=>srsSE(n)*Math.sqrt((N-n)/(N-1));
+function stratSD(n){let v=0;for(const h of ["D","M","F"]){const s=strata[h],Nh=s.length,nh=ALLOC[n][h],m=mean(s.map(p=>p.xg));
+  const S2=s.reduce((t,p)=>t+(p.xg-m)**2,0)/(Nh-1);v+=(Nh/N)**2*(1-nh/Nh)*S2/nh;}return Math.sqrt(v);}
+const theorySD=(mode,n)=>mode==="srs"?srsFPC(n):stratSD(n);
+
+const store={};
+const data=(m=mode,k=n)=>(store[m+k]||(store[m+k]=[]));
+let mode="srs", n=30, busy=false;
+
+// ---------- population ----------
+function popChart(){
+  const svg=$("popChart"),W=600,H=204,L=34,R=10,T=10,B=40;
+  const max=Math.ceil(Math.max(...P.map(p=>p.xg)));
+  const bins=Array(max).fill(0); P.forEach(p=>bins[Math.min(max-1,Math.floor(p.xg))]++);
+  const ymax=Math.max(...bins), x=v=>L+(v/max)*(W-L-R), y=c=>H-B-(c/ymax)*(H-T-B);
+  let g="";
+  for(let t=0;t<=ymax;t+=50)g+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="#22322a"/><text x="${L-6}" y="${y(t)+4}" text-anchor="end">${t}</text>`;
+  bins.forEach((c,i)=>{if(c)g+=`<rect x="${x(i)+0.5}" y="${y(c)}" width="${x(1)-L-1}" height="${H-B-y(c)}" fill="#3b5a48" rx="1"><title>${i}–${i+1} xG: ${c} players</title></rect>`;});
+  for(let t=0;t<=max;t+=5)g+=`<text x="${x(t)}" y="${H-B+15}" text-anchor="middle">${t}</text>`;
+  g+=`<line x1="${x(mu)}" x2="${x(mu)}" y1="${T}" y2="${H-B}" stroke="var(--accent2)" stroke-width="2.5"/><text x="${x(mu)+6}" y="${T+12}" style="fill:var(--accent2);font-weight:600">μ = ${f2(mu)}</text>`;
+  const top=P.slice().sort((a,b)=>b.xg-a.xg)[0];
+  g+=`<text x="${W-R}" y="${T+12}" text-anchor="end">max: ${top.name} ${f2(top.xg)}</text>`;
+  g+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">xG per player (season total)</text>`;
+  svg.innerHTML=g;
+  const q=quartiles(P.map(p=>p.xg));
+  const tiles=[["Population size N",N,""],["Population mean μ",f2(mu),"blue"],["Population SD σ",f2(sigma),""],
+    ["Median",f2(q.med),""],["Q1 / Q3",`${f2(q.q1)} / ${f2(q.q3)}`,""],["Min / Max",`${f2(q.min)} / ${f2(q.max)}`,""]];
+  $("popStats").innerHTML=tiles.map(([l,v,c])=>`<div class="stat"><div class="l">${l}</div><div class="v ${c}">${v}</div></div>`).join("");
+}
+
+// ---------- sampling chart ----------
+function sampChart(){
+  const d=data(), svg=$("sampChart"), W=600,H=254,L=34,R=10,T=14,B=40;
+  const sdT=theorySD(mode,n);
+  const lo=0, hi=Math.max(6, d.length?Math.ceil(Math.max(...d)):0);
+  const x=v=>L+((v-lo)/(hi-lo))*(W-L-R);
+  let g="";
+  for(let t=lo;t<=hi;t++)g+=`<line x1="${x(t)}" x2="${x(t)}" y1="${T}" y2="${H-B}" stroke="#1d2b24"/><text x="${x(t)}" y="${H-B+15}" text-anchor="middle">${t}</text>`;
+  g+=`<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="#3a4d42"/>`;
+  const showN=$("normTog").checked, w=0.1;
+  if(!d.length){
+    g+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" style="font-size:13px">Draft some squads to start building the distribution</text>`;
+  } else if(d.length<=150){
+    const counts={};let maxStack=0;d.forEach(v=>{const k=Math.round(v/w);counts[k]=(counts[k]||0)+1;maxStack=Math.max(maxStack,counts[k]);});
+    const r=Math.max(2.2,Math.min(4.6,(x(w)-x(0))/2-0.3)), step=Math.min(2*r+0.6,(H-B-T-4)/maxStack), seen={};
+    d.forEach((v,i)=>{const k=Math.round(v/w);seen[k]=(seen[k]||0)+1;const isLast=i===d.length-1;
+      g+=`<circle cx="${x(k*w)}" cy="${H-B-r-1-(seen[k]-1)*step}" r="${r}" fill="${isLast?"var(--accent)":"#5c8f74"}" ${isLast?'stroke="#fff" stroke-width="1"':''}><title>x̄ = ${f2(v)}</title></circle>`;});
+    if(showN){let p="";for(let i=0;i<=300;i++){const v=lo+(hi-lo)*i/300,z=(v-mu)/sdT,c=d.length*w*Math.exp(-z*z/2)/(sdT*Math.sqrt(2*Math.PI));
+      p+=(i?"L":"M")+x(v).toFixed(1)+" "+Math.max(T,H-B-r-1-(Math.max(c,0.5)-0.5)*step).toFixed(1);}
+      g+=`<path d="${p}" fill="none" stroke="#ff9ad5" stroke-width="2.2"/>`;}
+  } else {
+    const nb=Math.ceil((hi-lo)/w), bins=Array(nb).fill(0);
+    d.forEach(v=>bins[Math.min(nb-1,Math.floor((v-lo)/w))]++);
+    const dens=bins.map(c=>c/(d.length*w)), ymax=Math.max(...dens,1/(sdT*Math.sqrt(2*Math.PI)))*1.05, y=v=>H-B-(v/ymax)*(H-T-B);
+    dens.forEach((v,i)=>{if(v)g+=`<rect x="${x(lo+i*w)+0.4}" y="${y(v)}" width="${x(w)-x(0)-0.8}" height="${H-B-y(v)}" fill="#4c7d63"><title>${f2(lo+i*w)}–${f2(lo+(i+1)*w)}: ${bins[i]} drafts</title></rect>`;});
+    if(showN){let p="";for(let i=0;i<=300;i++){const v=lo+(hi-lo)*i/300,z=(v-mu)/sdT;p+=(i?"L":"M")+x(v).toFixed(1)+" "+y(Math.exp(-z*z/2)/(sdT*Math.sqrt(2*Math.PI))).toFixed(1);}
+      g+=`<path d="${p}" fill="none" stroke="#ff9ad5" stroke-width="2.2"/>`;}
+    g+=`<text x="${W-R}" y="${T+10}" text-anchor="end" style="font-size:10px">histogram (density), bin = 0.1</text>`;
+  }
+  if(d.length){const lv=d[d.length-1];g+=`<line x1="${x(lv)}" x2="${x(lv)}" y1="${T}" y2="${H-B}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3"/>`;}
+  g+=`<line x1="${x(mu)}" x2="${x(mu)}" y1="${T}" y2="${H-B}" stroke="var(--accent2)" stroke-width="2.5"/><text x="${x(mu)+6}" y="${T+10}" style="fill:var(--accent2);font-weight:600">μ = ${f2(mu)}</text>`;
+  g+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">x̄ = mean xG of the drafted squad (n = ${n})</text>`;
+  svg.innerHTML=g;
+}
+
+// ---------- statistics ----------
+function rowStats(m,k){const d=data(m,k);if(!d.length)return null;const q=quartiles(d);
+  return {k:d.length,mean:mean(d),sd:sd(d),min:q.min,max:q.max,med:q.med,pct:d.filter(v=>Math.abs(v-mu)<=0.5).length/d.length};}
+function stats(){
+  const s=rowStats(mode,n);
+  $("sK").textContent=s?s.k:0;
+  $("sMx").textContent=s?f2(s.mean):"–";
+  $("sSx").textContent=s&&s.k>1?f2(s.sd):"–";
+  $("sPct").textContent=s?Math.round(100*s.pct)+"%":"–";
+  $("sRange").textContent=s?`${f2(s.min)} / ${f2(s.max)}`:"–";
+  $("sMed").textContent=s?f2(s.med):"–";
+  if(mode==="srs"){$("sThL").textContent="Theory: σ/√n";$("sTh").textContent=f2(srsSE(n));
+    $("sFpcL").textContent="With FPC √((N−n)/(N−1))";$("sFpc").textContent=f2(srsFPC(n));}
+  else{$("sThL").textContent="SRS σ/√n (for comparison)";$("sTh").textContent=f2(srsSE(n));
+    $("sFpcL").textContent="Theory SD, stratified";$("sFpc").textContent=f2(stratSD(n));}
+  const pct=100*n/N;$("sTen").textContent=`${n}/${N} = ${pct.toFixed(1)}% ${pct<=10?"✓":"✗"}`;
+  let rows="";
+  for(const m of ["srs","strat"])for(const k of SIZES){const r=rowStats(m,k);
+    const a=ALLOC[k];const lab=m==="srs"?"SRS":`Stratified ${a.D}-${a.M}-${a.F}`;
+    rows+=`<tr class="${m===mode&&k===n?"cur":""}"><td>${lab}</td><td>${k}</td><td>${r?r.k:0}</td><td>${r?f2(r.mean):"–"}</td><td>${f2(mu)}</td><td>${r&&r.k>1?f2(r.sd):"–"}</td><td>${f2(theorySD(m,k))}</td><td>${r?f2(r.min):"–"}</td><td>${r?f2(r.max):"–"}</td><td>${r?Math.round(100*r.pct)+"%":"–"}</td></tr>`;}
+  $("cmpBody").innerHTML=rows;
+}
+function labels(){
+  const a=ALLOC[n];
+  $("modeLabel").textContent=mode==="srs"?`SRS, n = ${n}`:`Stratified ${a.D} DEF · ${a.M} MID · ${a.F} FWD, n = ${n}`;
+  $("normTxt").textContent=mode==="srs"?`Normal model N(μ, ${f2(srsFPC(n))})`:`Normal model N(μ, ${f2(stratSD(n))})`;
+  $("emptySub").textContent=mode==="srs"?`${n} players are drawn at random from the population`:`${a.D} defenders, ${a.M} midfielders and ${a.F} forwards are drawn at random`;
+  $("formation").textContent=`n = ${n}`;
+  $("pitch").classList.toggle("big",n>11);
+}
+
+// ---------- pitch ----------
+function initials(s){return s.split(" ").map(w=>w[0]).slice(0,2).join("");}
+function cardHTML(p,delay,hi){
+  const short=p.name.split(" ").length>1?p.name.split(" ").slice(-1)[0]:p.name;
+  return `<div class="card${hi?" hi":""}" style="${delay!=null?`animation-delay:${delay}s`:"animation:none"}" title="${p.name} · ${p.club} · ${p.country} · xG ${p.xg} · goals ${p.goals}">
+    <span class="pos ${p.pos}">${POSNAME[p.pos]}</span>
+    <span class="xg">${p.xg.toFixed(1)}<small>xG</small></span>
+    <div class="ph"><img src="${IMG+p.id}.png" alt="" referrerpolicy="no-referrer" data-id="${p.id}" data-ini="${initials(p.name).replace(/"/g,"")}" onerror="imgFail(this)"></div>
+    <div class="nm">${short}</div><div class="cl">${p.club}</div></div>`;
+}
+function animMs(){return Math.round(n*Math.min(0.14,1.6/n)*1000)+300;}
+function clearPitch(){$("rows").innerHTML="";$("empty").style.display="flex";$("board").style.display="none";$("calc").style.display="none";}
+function showTeam(res,animate){
+  const by={F:[],M:[],D:[]};res.team.forEach(p=>by[p.pos].push(p));
+  for(const k in by)by[k].sort((a,b)=>a.xg-b.xg);
+  const maxp=res.team.reduce((a,b)=>b.xg>a.xg?b:a), per=Math.min(0.14,1.6/n);
+  let order=0;const rh={};
+  for(const k of ["D","M","F"])rh[k]=by[k].map(p=>cardHTML(p,animate?(order++)*per:null,p===maxp)).join("");
+  $("rows").innerHTML=["F","M","D"].filter(k=>by[k].length).map(k=>`<div class="row">${rh[k]}</div>`).join("");
+  $("empty").style.display="none";$("board").style.display="flex";
+  $("formation").textContent=`Drawn: ${by.D.length} DEF · ${by.M.length} MID · ${by.F.length} FWD · n = ${n}`;
+  $("draftNo").textContent=`Draft #${data().length}`;
+  const xs=res.team.map(p=>p.xg), tot=sum(xs);
+  $("vals").innerHTML=res.team.slice().sort((a,b)=>b.xg-a.xg).map(p=>`<span title="${p.name}">${p.xg.toFixed(2)}</span>`).join("");
+  if(mode==="srs")$("eq").innerHTML=`x̄ = Σx / n = ${f2(tot)} / ${n} = <b>${f2(res.xbar)}</b>`;
+  else{const parts=["D","M","F"].map(h=>`${(strata[h].length/N).toFixed(2)}·${f2(mean(by[h].map(p=>p.xg)))}`);
+    $("eq").innerHTML=`x̄<sub>strat</sub> = Σ (N<sub>h</sub>/N)·x̄<sub>h</sub> = ${parts.join(" + ")} = <b>${f2(res.xbar)}</b>`;}
+  const q=quartiles(xs);
+  const ms=[["n",n],["Σx",f2(tot)],["Mean x̄",f2(mean(xs))],["SD s",f2(sd(xs))],["Min",f2(q.min)],["Q1",f2(q.q1)],["Median",f2(q.med)],["Q3",f2(q.q3)],["Max",f2(q.max)]];
+  $("sampStats").innerHTML=ms.map(([l,v])=>`<div><div class="l">${l}</div><div class="v">${v}</div></div>`).join("");
+  $("calc").style.display="block";
+  if(animate){$("xbarBig").textContent="…";setTimeout(()=>{$("xbarBig").textContent=f2(res.xbar);},animMs());}
+  else $("xbarBig").textContent=f2(res.xbar);
+}
+
+const BTN=["draft1","draft10","draft100","draft1000","reset","fillAll"];
+function setBusy(b){busy=b;BTN.forEach(i=>$(i).disabled=b);}
+function refresh(){sampChart();stats();}
+function draftOne(){
+  if(busy)return;setBusy(true);
+  const r=draw(mode,n);data().push(r.xbar);showTeam(r,true);
+  setTimeout(()=>{refresh();setBusy(false);},animMs());
+}
+function draftMany(k){
+  if(busy)return;let r;
+  for(let i=0;i<k;i++){r=draw(mode,n);data().push(r.xbar);}
+  showTeam(r,false);refresh();
+}
+$("draft1").onclick=draftOne;
+$("draft10").onclick=()=>draftMany(10);
+$("draft100").onclick=()=>draftMany(100);
+$("draft1000").onclick=()=>draftMany(1000);
+$("fillAll").onclick=()=>{if(busy)return;for(const k of SIZES)for(let i=0;i<1000;i++)data(mode,k).push(draw(mode,k).xbar);refresh();};
+$("reset").onclick=()=>{store[mode+n]=[];clearPitch();labels();refresh();};
+$("normTog").onchange=sampChart;
+function bindSeg(id,attr,apply){document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{
+  if(busy)return;apply(b.dataset[attr]);
+  document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.toggle("on",x===b));
+  clearPitch();labels();refresh();});}
+bindSeg("sizeSeg","n",v=>{n=+v;});
+bindSeg("modeSeg","mode",v=>{mode=v;});
+
+document.querySelectorAll(".Nval").forEach(e=>e.textContent=N);
+$("popTag").textContent=`${N} players · ${strata.D.length} DEF · ${strata.M.length} MID · ${strata.F.length} FWD`;
+popChart();labels();refresh();
+</script>
+</body>
+</html>
