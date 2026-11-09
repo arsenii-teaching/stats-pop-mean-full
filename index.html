@@ -105,6 +105,11 @@ label.tog{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font
 .pitch.big .card .xg small{display:none}
 .pitch.big .card .pos{font-size:10px;top:3px;left:3px;padding:0 3px}
 .pitch.big .card .ini{font-size:20px;margin-bottom:8px}
+.pitch.huge .card{width:40px}
+.pitch.huge .card .ph{height:38px}
+.pitch.huge .card .nm,.pitch.huge .card .pos{display:none}
+.pitch.huge .card .xg{font-size:11px;top:1px;right:3px}
+.pitch.huge .row{gap:6px 4px}
 .mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;margin-top:10px}
 .mini>div{background:#0f1813;border:1px solid var(--line);border-radius:8px;padding:5px 8px}
 .mini .l{font-size:11px;color:var(--muted)}
@@ -117,6 +122,11 @@ table.cmp tr.cur td{background:#1d2e24;color:#fff}
 table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .tablewrap{overflow-x:auto}
 .ctlrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.numin{display:inline-flex;align-items:center;gap:6px}
+.numin input{width:76px;font:600 14px Inter;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.numin input:focus{outline:none;border-color:var(--accent)}
+.numin input.bad{border-color:var(--fwd)}
+.seg button:disabled{opacity:.35}
 .ctlrow .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 </style>
 </head>
@@ -124,8 +134,8 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 <div class="wrap">
 <header>
   <div>
-    <h1>Draft <span>xG</span> Lab <span style="color:var(--ink);opacity:.5">· Squad sizes</span></h1>
-    <p>Draft a random squad of <b>n = 11, 30 or 40</b> players and record its <b>mean expected goals (x̄)</b>. Repeat many times to build the <b>sampling distribution of x̄</b>, then switch the sample size and watch the spread shrink and the shape become more Normal.</p>
+    <h1>Draft <span>xG</span> Lab <span style="color:var(--ink);opacity:.5">· Sample sizes</span></h1>
+    <p>Draft a random squad of <b>any size n</b> (1 up to the whole population) and record its <b>mean expected goals (x̄)</b>. Repeat many times to build the <b>sampling distribution of x̄</b>, then switch the sample size and watch the spread shrink and the shape become more Normal.</p>
   </div>
   <span class="tag" id="popTag"></span>
 </header>
@@ -137,9 +147,17 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
     <div class="ctlrow">
       <span class="lbl">Sample size</span>
       <div class="seg" id="sizeSeg">
-        <button data-n="11">n = 11</button>
-        <button data-n="30" class="on">n = 30</button>
-        <button data-n="40">n = 40</button>
+        <button data-n="1">1</button>
+        <button data-n="5">5</button>
+        <button data-n="11">11</button>
+        <button data-n="20">20</button>
+        <button data-n="30" class="on">30</button>
+        <button data-n="40">40</button>
+      </div>
+      <div class="numin" id="customBox">
+        <input type="text" inputmode="numeric" id="customN" placeholder="custom n" autocomplete="off" aria-label="Custom sample size">
+        <button type="button" id="setN">Set n</button>
+        <span class="note" id="customMsg" style="margin:0;color:var(--fwd)"></span>
       </div>
       <span class="spacer"></span>
       <div class="seg" id="modeSeg">
@@ -206,13 +224,13 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
     </div>
     <div class="controls" style="margin:0">
       <button id="reset">Reset this distribution</button>
-      <button id="fillAll">Simulate 1000 for every n</button>
+      <button id="fillAll">Simulate 1000 for every preset n</button>
     </div>
   </section>
 </div>
 
 <section class="panel qs">
-  <h2>Compare sample sizes <small>all simulations so far · current setting highlighted</small></h2>
+  <h2>Compare sample sizes <small>every n you have simulated · current setting highlighted</small></h2>
   <div class="tablewrap">
   <table class="cmp">
     <thead><tr><th>Design</th><th>n</th><th>Drafts</th><th>Mean of x̄</th><th>μ</th><th>SD of x̄</th><th>Theory SD</th><th>Min x̄</th><th>Max x̄</th><th>Within ±0.5 of μ</th></tr></thead>
@@ -226,11 +244,13 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
   <h2>Discussion questions</h2>
   <ol>
     <li>Describe the shape of the population distribution of xG. Why is it so strongly right‑skewed?</li>
-    <li>Simulate 1000 drafts for each of n = 11, 30 and 40. Does the mean of the x̄ values change with n? What does that tell you about bias?</li>
+    <li>Set <b>n = 1</b> and simulate 1000 drafts. Why does the sampling distribution look just like the population? Is the Normal model any good here?</li>
+    <li>Simulate 1000 drafts for each preset n (1, 5, 11, 20, 30, 40). Does the mean of the x̄ values change with n? What does that tell you about bias?</li>
     <li>How does the SD of x̄ change as n increases? Check that it matches σ/√n. By what factor should the SD shrink going from n = 11 to n = 40?</li>
-    <li>Compare the <b>shape</b> of the three sampling distributions. Which is closest to Normal? How does this connect to the Central Limit Theorem and the “n ≥ 30” rule of thumb?</li>
+    <li>Compare the <b>shape</b> of the sampling distributions as n grows. Which is closest to Normal? How does this connect to the Central Limit Theorem and the “n ≥ 30” rule of thumb?</li>
     <li>Check the 10% condition for n = 40. Why does the FPC value differ more from σ/√n at n = 40 than at n = 11?</li>
     <li>Switch to <b>Stratified</b>. Does stratifying by position reduce the SD of x̄ at every sample size?</li>
+    <li>Enter n = <span class="Nval"></span> (the whole population) as a custom size. What happens to the SD of x̄, and why? Which statistic is now a parameter?</li>
   </ol>
 </section>
 </div>
@@ -249,15 +269,19 @@ const mu = P.reduce((s,p)=>s+p.xg,0)/N;
 const sigma = Math.sqrt(P.reduce((s,p)=>s+(p.xg-mu)**2,0)/N);
 const strata = {D:P.filter(p=>p.pos==="D"),M:P.filter(p=>p.pos==="M"),F:P.filter(p=>p.pos==="F")};
 const POSNAME = {D:"DEF",M:"MID",F:"FWD"};
-const SIZES = [11,30,40];
-// proportional allocation to strata (largest-remainder rounding)
-const ALLOC = {};
-SIZES.forEach(k=>{
+const PRESETS = [1,5,11,20,30,40];
+const STRAT_MIN = 3; // stratified needs at least one player from each position
+// proportional allocation to strata (largest-remainder rounding, at least 1 per stratum)
+const ALLOC = new Proxy({}, {get(cache,key){
+  const k=+key; if(cache[k]) return cache[k];
   const raw={},a={};let used=0;
   for(const h of ["D","M","F"]){raw[h]=k*strata[h].length/N;a[h]=Math.floor(raw[h]);used+=a[h];}
   ["D","M","F"].sort((x,y)=>(raw[y]-a[y])-(raw[x]-a[x])).slice(0,k-used).forEach(h=>a[h]++);
-  ALLOC[k]=a;
-});
+  for(const h of ["D","M","F"]) if(a[h]===0){a[h]=1;const big=["D","M","F"].sort((x,y)=>a[y]-a[x])[0];a[big]--;}
+  return cache[k]=a;
+}});
+const ok=v=>Number.isFinite(v);
+const fx=v=>ok(v)?v.toFixed(2):"–";
 
 const $=id=>document.getElementById(id);
 const f2=x=>x.toFixed(2);
@@ -316,7 +340,7 @@ function sampChart(){
   let g="";
   for(let t=lo;t<=hi;t++)g+=`<line x1="${x(t)}" x2="${x(t)}" y1="${T}" y2="${H-B}" stroke="#1d2b24"/><text x="${x(t)}" y="${H-B+15}" text-anchor="middle">${t}</text>`;
   g+=`<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="#3a4d42"/>`;
-  const showN=$("normTog").checked, w=0.1;
+  const showN=$("normTog").checked&&sdT>1e-9, w=0.1;
   if(!d.length){
     g+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" style="font-size:13px">Draft some squads to start building the distribution</text>`;
   } else if(d.length<=150){
@@ -349,7 +373,7 @@ function stats(){
   const s=rowStats(mode,n);
   $("sK").textContent=s?s.k:0;
   $("sMx").textContent=s?f2(s.mean):"–";
-  $("sSx").textContent=s&&s.k>1?f2(s.sd):"–";
+  $("sSx").textContent=s&&s.k>1?fx(s.sd):"–";
   $("sPct").textContent=s?Math.round(100*s.pct)+"%":"–";
   $("sRange").textContent=s?`${f2(s.min)} / ${f2(s.max)}`:"–";
   $("sMed").textContent=s?f2(s.med):"–";
@@ -359,10 +383,13 @@ function stats(){
     $("sFpcL").textContent="Theory SD, stratified";$("sFpc").textContent=f2(stratSD(n));}
   const pct=100*n/N;$("sTen").textContent=`${n}/${N} = ${pct.toFixed(1)}% ${pct<=10?"✓":"✗"}`;
   let rows="";
-  for(const m of ["srs","strat"])for(const k of SIZES){const r=rowStats(m,k);
+  for(const m of ["srs","strat"]){
+    const ks=new Set(Object.keys(store).filter(key=>key.startsWith(m)&&store[key].length).map(key=>+key.slice(m.length)));
+    if(m===mode)ks.add(n);
+    for(const k of [...ks].sort((a,b)=>a-b)){const r=rowStats(m,k);
     const a=ALLOC[k];const lab=m==="srs"?"SRS":`Stratified ${a.D}-${a.M}-${a.F}`;
-    rows+=`<tr class="${m===mode&&k===n?"cur":""}"><td>${lab}</td><td>${k}</td><td>${r?r.k:0}</td><td>${r?f2(r.mean):"–"}</td><td>${f2(mu)}</td><td>${r&&r.k>1?f2(r.sd):"–"}</td><td>${f2(theorySD(m,k))}</td><td>${r?f2(r.min):"–"}</td><td>${r?f2(r.max):"–"}</td><td>${r?Math.round(100*r.pct)+"%":"–"}</td></tr>`;}
-  $("cmpBody").innerHTML=rows;
+    rows+=`<tr class="${m===mode&&k===n?"cur":""}"><td>${lab}</td><td>${k}</td><td>${r?r.k:0}</td><td>${r?f2(r.mean):"–"}</td><td>${f2(mu)}</td><td>${r&&r.k>1?fx(r.sd):"–"}</td><td>${f2(theorySD(m,k))}</td><td>${r?f2(r.min):"–"}</td><td>${r?f2(r.max):"–"}</td><td>${r?Math.round(100*r.pct)+"%":"–"}</td></tr>`;}}
+  $("cmpBody").innerHTML=rows||`<tr><td colspan="10" style="text-align:center;color:var(--muted)">No simulations yet</td></tr>`;
 }
 function labels(){
   const a=ALLOC[n];
@@ -371,6 +398,12 @@ function labels(){
   $("emptySub").textContent=mode==="srs"?`${n} players are drawn at random from the population`:`${a.D} defenders, ${a.M} midfielders and ${a.F} forwards are drawn at random`;
   $("formation").textContent=`n = ${n}`;
   $("pitch").classList.toggle("big",n>11);
+  $("pitch").classList.toggle("huge",n>60);
+  document.querySelectorAll("#sizeSeg button").forEach(b=>b.classList.toggle("on",+b.dataset.n===n));
+  const cin=$("customN"); if(!PRESETS.includes(n)) cin.value=n; else if(document.activeElement!==cin) cin.value="";
+  cin.max=N;
+  const sb=document.querySelector('#modeSeg button[data-mode="strat"]');
+  sb.disabled=n<STRAT_MIN; sb.title=n<STRAT_MIN?`Stratified sampling needs n ≥ ${STRAT_MIN} (one player per position)`:"Stratified by position, proportional allocation";
 }
 
 // ---------- pitch ----------
@@ -401,7 +434,7 @@ function showTeam(res,animate){
   else{const parts=["D","M","F"].map(h=>`${(strata[h].length/N).toFixed(2)}·${f2(mean(by[h].map(p=>p.xg)))}`);
     $("eq").innerHTML=`x̄<sub>strat</sub> = Σ (N<sub>h</sub>/N)·x̄<sub>h</sub> = ${parts.join(" + ")} = <b>${f2(res.xbar)}</b>`;}
   const q=quartiles(xs);
-  const ms=[["n",n],["Σx",f2(tot)],["Mean x̄",f2(mean(xs))],["SD s",f2(sd(xs))],["Min",f2(q.min)],["Q1",f2(q.q1)],["Median",f2(q.med)],["Q3",f2(q.q3)],["Max",f2(q.max)]];
+  const ms=[["n",n],["Σx",f2(tot)],["Mean x̄",f2(mean(xs))],["SD s",fx(sd(xs))],["Min",fx(q.min)],["Q1",fx(q.q1)],["Median",fx(q.med)],["Q3",fx(q.q3)],["Max",fx(q.max)]];
   $("sampStats").innerHTML=ms.map(([l,v])=>`<div><div class="l">${l}</div><div class="v">${v}</div></div>`).join("");
   $("calc").style.display="block";
   if(animate){$("xbarBig").textContent="…";setTimeout(()=>{$("xbarBig").textContent=f2(res.xbar);},animMs());}
@@ -414,7 +447,7 @@ function refresh(){sampChart();stats();}
 function draftOne(){
   if(busy)return;setBusy(true);
   const r=draw(mode,n);data().push(r.xbar);showTeam(r,true);
-  setTimeout(()=>{refresh();setBusy(false);},animMs());
+  setTimeout(()=>{refresh();setBusy(false);if(pendingN!==null){const v=pendingN;pendingN=null;setN(v);}},animMs());
 }
 function draftMany(k){
   if(busy)return;let r;
@@ -425,14 +458,31 @@ $("draft1").onclick=draftOne;
 $("draft10").onclick=()=>draftMany(10);
 $("draft100").onclick=()=>draftMany(100);
 $("draft1000").onclick=()=>draftMany(1000);
-$("fillAll").onclick=()=>{if(busy)return;for(const k of SIZES)for(let i=0;i<1000;i++)data(mode,k).push(draw(mode,k).xbar);refresh();};
+$("fillAll").onclick=()=>{if(busy)return;for(const k of PRESETS){if(mode==="strat"&&k<STRAT_MIN)continue;for(let i=0;i<1000;i++)data(mode,k).push(draw(mode,k).xbar);}refresh();};
 $("reset").onclick=()=>{store[mode+n]=[];clearPitch();labels();refresh();};
 $("normTog").onchange=sampChart;
 function bindSeg(id,attr,apply){document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{
   if(busy)return;apply(b.dataset[attr]);
   document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.toggle("on",x===b));
   clearPitch();labels();refresh();});}
-bindSeg("sizeSeg","n",v=>{n=+v;});
+let pendingN=null;
+function setN(v){
+  if(busy){pendingN=v;return;}           // a draft is animating: apply as soon as it finishes
+  n=v;
+  if(n<STRAT_MIN&&mode==="strat"){mode="srs";document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.toggle("on",x.dataset.mode==="srs"));}
+  clearPitch();labels();refresh();
+}
+function applyCustom(){
+  const inp=$("customN"),raw=inp.value.trim(),v=Number(raw);
+  if(raw===""||!Number.isInteger(v)||v<1||v>N){
+    inp.classList.add("bad");$("customMsg").textContent=`Enter a whole number from 1 to ${N}`;return;
+  }
+  inp.classList.remove("bad");$("customMsg").textContent="";setN(v);
+}
+document.querySelectorAll("#sizeSeg button").forEach(b=>b.onclick=()=>{$("customN").value="";$("customN").classList.remove("bad");$("customMsg").textContent="";setN(+b.dataset.n);});
+$("setN").addEventListener("click",applyCustom);
+$("customN").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();applyCustom();}});
+$("customN").addEventListener("input",()=>{$("customN").classList.remove("bad");$("customMsg").textContent="";});
 bindSeg("modeSeg","mode",v=>{mode=v;});
 
 document.querySelectorAll(".Nval").forEach(e=>e.textContent=N);
