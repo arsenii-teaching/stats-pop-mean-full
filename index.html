@@ -128,6 +128,11 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .numin input.bad{border-color:var(--fwd)}
 .seg button:disabled{opacity:.35}
 .ctlrow .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ok{color:var(--mid)} .no{color:var(--fwd)}
+table.cmp .ok,table.cmp .no{font-size:16px;font-weight:700}
+.panel h2 small{text-align:right}
+.interp{margin-top:10px;background:var(--panel2);border:1px dashed #3a4d42;border-radius:10px;padding:8px 12px;font-size:13px;color:#cfdcd3}
+.interp b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -135,17 +140,17 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 <header>
   <div>
     <h1>Draft <span>xG</span> Lab <span style="color:var(--ink);opacity:.5">· Sample sizes</span></h1>
-    <p>Draft a random squad of <b>any size n</b> (1 up to the whole population) and record its <b>mean expected goals (x̄)</b>. Repeat many times to build the <b>sampling distribution of x̄</b>, then switch the sample size and watch the spread shrink and the shape become more Normal.</p>
+    <p>Each squad is an <b>SRS of size n</b> from the population of Premier League players. Its <b>sample mean xG, x̄</b>, is a statistic that estimates the parameter <b>μ</b>. Repeat for many trials to simulate the <b>sampling distribution of x̄</b>, then change n and compare its center, spread and shape.</p>
   </div>
   <span class="tag" id="popTag"></span>
 </header>
 
 <div class="grid">
-  <!-- LEFT: pitch -->
+  <!-- LEFT: one sample -->
   <section class="panel">
-    <h2>Your Drafted Squad <small id="formation"></small></h2>
+    <h2>One sample: your squad <small id="formation"></small></h2>
     <div class="ctlrow">
-      <span class="lbl">Sample size</span>
+      <span class="lbl">Sample size n</span>
       <div class="seg" id="sizeSeg">
         <button data-n="1">1</button>
         <button data-n="5">5</button>
@@ -159,15 +164,10 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
         <button type="button" id="setN">Set n</button>
         <span class="note" id="customMsg" style="margin:0;color:var(--fwd)"></span>
       </div>
-      <span class="spacer"></span>
-      <div class="seg" id="modeSeg">
-        <button data-mode="srs" class="on" title="Simple random sample">SRS</button>
-        <button data-mode="strat" title="Stratified by position, proportional allocation">Stratified</button>
-      </div>
     </div>
     <div class="controls">
       <button class="primary" id="draft1">⚽ Draft a squad</button>
-      <button id="draft10">+10 drafts</button>
+      <button id="draft10">+10 trials</button>
       <button id="draft100">+100</button>
       <button id="draft1000">+1000</button>
     </div>
@@ -184,73 +184,74 @@ table.cmp tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
       <div class="rows" id="rows"></div>
       <div class="empty" id="empty">Press “Draft a squad”<span id="emptySub"></span></div>
       <div class="scoreboard" id="board" style="display:none">
-        <span id="draftNo">Draft #0</span>
+        <span id="draftNo">Trial #0</span>
         <span class="xbar">x̄ = <b id="xbarBig">–</b> xG</span>
       </div>
     </div>
     <div class="calc" id="calc" style="display:none">
-      <div class="cond" style="font-weight:600;color:var(--muted);text-transform:uppercase;font-size:13px">This sample's xG values (sorted)</div>
+      <div class="cond" style="font-weight:600;color:var(--muted);text-transform:uppercase;font-size:13px">Distribution of sample data (xG of each player in this sample)</div>
       <div class="vals" id="vals"></div>
       <div class="eq" id="eq"></div>
       <div class="mini" id="sampStats"></div>
     </div>
   </section>
 
-  <!-- RIGHT: distributions -->
+  <!-- RIGHT: population + sampling distribution -->
   <section class="panel">
-    <h2>Population <small>all players with a photo who played this season</small></h2>
+    <h2>Population distribution <small>all players with a photo who played this season</small></h2>
     <svg class="chart" id="popChart" viewBox="0 0 600 204"></svg>
     <div class="stats" id="popStats"></div>
 
-    <h2 style="margin-top:18px">Sampling distribution of x̄ <small id="modeLabel"></small></h2>
+    <h2 style="margin-top:18px"><span>Simulated sampling distribution of <span style="text-transform:none">x̄</span></span> <small id="modeLabel"></small></h2>
     <svg class="chart" id="sampChart" viewBox="0 0 600 254"></svg>
     <div class="legend">
-      <span><i style="background:var(--accent2)"></i>μ (population mean)</span>
+      <span><i style="background:var(--accent2)"></i>μ (parameter)</span>
       <span><i style="background:var(--accent)"></i>most recent x̄</span>
       <span id="normLeg"><i style="background:#ff9ad5"></i><span id="normTxt">Normal model</span></span>
       <span class="spacer"></span>
       <label class="tog"><input type="checkbox" id="normTog" checked> show Normal model</label>
     </div>
+    <div class="note" style="margin-top:4px">One dot = one whole sample's x̄.</div>
     <div class="stats">
-      <div class="stat"><div class="l">Drafts simulated</div><div class="v" id="sK">0</div></div>
+      <div class="stat"><div class="l">Trials (samples simulated)</div><div class="v" id="sK">0</div></div>
       <div class="stat"><div class="l">Mean of x̄ values</div><div class="v acc" id="sMx">–</div></div>
       <div class="stat"><div class="l">SD of x̄ values</div><div class="v acc" id="sSx">–</div></div>
-      <div class="stat"><div class="l" id="sThL">Theory: σ/√n</div><div class="v" id="sTh">–</div></div>
-      <div class="stat"><div class="l" id="sFpcL">With FPC √((N−n)/(N−1))</div><div class="v" id="sFpc">–</div></div>
-      <div class="stat"><div class="l">x̄ within ±0.5 of μ</div><div class="v" id="sPct">–</div></div>
-      <div class="stat"><div class="l">Min x̄ / Max x̄</div><div class="v" id="sRange">–</div></div>
-      <div class="stat"><div class="l">Median of x̄ values</div><div class="v" id="sMed">–</div></div>
-      <div class="stat"><div class="l">10% condition (n / N)</div><div class="v" id="sTen">–</div></div>
+      <div class="stat"><div class="l">Center: μ<sub>x̄</sub> = μ</div><div class="v blue" id="sMuX">–</div></div>
+      <div class="stat"><div class="l">Spread: σ<sub>x̄</sub> = σ/√n</div><div class="v" id="sTh">–</div></div>
+      <div class="stat"><div class="l">10%: n ≤ 0.10N?</div><div class="v" id="sTen">–</div></div>
     </div>
-    <div class="controls" style="margin:0">
+    <div class="stats" style="grid-template-columns:1fr;margin-top:0">
+      <div class="stat"><div class="l">Shape (Normal/Large): population is skewed right, so x̄ is approx. Normal only if n ≥ 30 (CLT)</div><div class="v" id="sShape" style="font-size:20px">–</div></div>
+    </div>
+    <div class="interp" id="interp"></div>
+    <div class="controls" style="margin:10px 0 0">
       <button id="reset">Reset this distribution</button>
-      <button id="fillAll">Simulate 1000 for every preset n</button>
+      <button id="fillAll">Simulate 1000 trials for every preset n</button>
     </div>
   </section>
 </div>
 
 <section class="panel qs">
-  <h2>Compare sample sizes <small>every n you have simulated · current setting highlighted</small></h2>
+  <h2>Compare sample sizes <small>every n you have simulated · current n highlighted</small></h2>
   <div class="tablewrap">
   <table class="cmp">
-    <thead><tr><th>Design</th><th>n</th><th>Drafts</th><th>Mean of x̄</th><th>μ</th><th>SD of x̄</th><th>Theory SD</th><th>Min x̄</th><th>Max x̄</th><th>Within ±0.5 of μ</th></tr></thead>
+    <thead><tr><th>n</th><th>Trials</th><th>Mean of x̄ values</th><th>μ<sub>x̄</sub> = μ</th><th>SD of x̄ values</th><th>σ<sub>x̄</sub> = σ/√n</th><th>10%: n ≤ 0.10N</th><th>CLT: n ≥ 30</th></tr></thead>
     <tbody id="cmpBody"></tbody>
   </table>
   </div>
-  <div class="note">Theory SD for SRS uses σ/√n × √((N−n)/(N−1)) (exact for sampling without replacement from N = <span class="Nval"></span>). For stratified sampling it is the exact SD of the weighted estimator Σ (N<sub>h</sub>/N)·x̄<sub>h</sub>.</div>
+  <div class="note">More <b>trials</b> give a smoother picture of the sampling distribution but do not change its center or spread. A larger <b>n</b> gives a smaller spread, and the center stays at μ.</div>
 </section>
 
 <section class="panel qs">
   <h2>Discussion questions</h2>
   <ol>
-    <li>Describe the shape of the population distribution of xG. Why is it so strongly right‑skewed?</li>
-    <li>Set <b>n = 1</b> and simulate 1000 drafts. Why does the sampling distribution look just like the population? Is the Normal model any good here?</li>
-    <li>Simulate 1000 drafts for each preset n (1, 5, 11, 20, 30, 40). Does the mean of the x̄ values change with n? What does that tell you about bias?</li>
-    <li>How does the SD of x̄ change as n increases? Check that it matches σ/√n. By what factor should the SD shrink going from n = 11 to n = 40?</li>
-    <li>Compare the <b>shape</b> of the sampling distributions as n grows. Which is closest to Normal? How does this connect to the Central Limit Theorem and the “n ≥ 30” rule of thumb?</li>
-    <li>Check the 10% condition for n = 40. Why does the FPC value differ more from σ/√n at n = 40 than at n = 11?</li>
-    <li>Switch to <b>Stratified</b>. Does stratifying by position reduce the SD of x̄ at every sample size?</li>
-    <li>Enter n = <span class="Nval"></span> (the whole population) as a custom size. What happens to the SD of x̄, and why? Which statistic is now a parameter?</li>
+    <li>Describe the <b>population distribution</b> of xG. Is μ = <span class="muval"></span> a parameter or a statistic? Is your squad's x̄?</li>
+    <li>Set <b>n = 1</b> and simulate 1000 trials. Why does the sampling distribution of x̄ look just like the population distribution?</li>
+    <li>Simulate 1000 trials for each preset n. Is the mean of the x̄ values close to μ every time? What does this say about x̄ as an <b>unbiased estimator</b>?</li>
+    <li>Compare the SD of the x̄ values with σ/√n. Going from n = 5 to n = 20, by what factor does the spread shrink? Why does halving the SD need 4× the sample size?</li>
+    <li>Describe the <b>shape</b> of the sampling distribution at n = 5, 11 and 30. When is the Normal model reasonable? Connect your answer to the CLT.</li>
+    <li>Interpret the SD of x̄ for n = 30: “In SRSs of size ___, the sample mean xG typically varies by about ___ from the true mean μ = ___.”</li>
+    <li>Check the 10% condition for n = 40 and for n = 100. Set n = <span class="Nval"></span> (the whole population): why is σ/√n now wrong about the spread?</li>
   </ol>
 </section>
 </div>
@@ -266,49 +267,26 @@ const RAW = [["Max Aarons","Bournemouth","D",0.0,0,"232980","England"],["Josh Ac
 const P = RAW.map(([name,club,pos,xg,goals,id,country])=>({name,club,pos,xg,goals,id,country}));
 const N = P.length;
 const mu = P.reduce((s,p)=>s+p.xg,0)/N;
-const sigma = Math.sqrt(P.reduce((s,p)=>s+(p.xg-mu)**2,0)/N);
-const strata = {D:P.filter(p=>p.pos==="D"),M:P.filter(p=>p.pos==="M"),F:P.filter(p=>p.pos==="F")};
+const sigma = Math.sqrt(P.reduce((s,p)=>s+(p.xg-mu)**2,0)/N);   // population SD (divide by N)
 const POSNAME = {D:"DEF",M:"MID",F:"FWD"};
 const PRESETS = [1,5,11,20,30,40];
-const STRAT_MIN = 3; // stratified needs at least one player from each position
-// proportional allocation to strata (largest-remainder rounding, at least 1 per stratum)
-const ALLOC = new Proxy({}, {get(cache,key){
-  const k=+key; if(cache[k]) return cache[k];
-  const raw={},a={};let used=0;
-  for(const h of ["D","M","F"]){raw[h]=k*strata[h].length/N;a[h]=Math.floor(raw[h]);used+=a[h];}
-  ["D","M","F"].sort((x,y)=>(raw[y]-a[y])-(raw[x]-a[x])).slice(0,k-used).forEach(h=>a[h]++);
-  for(const h of ["D","M","F"]) if(a[h]===0){a[h]=1;const big=["D","M","F"].sort((x,y)=>a[y]-a[x])[0];a[big]--;}
-  return cache[k]=a;
-}});
-const ok=v=>Number.isFinite(v);
-const fx=v=>ok(v)?v.toFixed(2):"–";
 
 const $=id=>document.getElementById(id);
 const f2=x=>x.toFixed(2);
+const fx=v=>Number.isFinite(v)?v.toFixed(2):"–";
 const sum=a=>a.reduce((s,v)=>s+v,0);
 const mean=a=>sum(a)/a.length;
 const sd=a=>{if(a.length<2)return NaN;const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1));};
-function median(s){const k=s.length;return k%2?s[(k-1)/2]:(s[k/2-1]+s[k/2])/2;}
-function quartiles(a){const s=a.slice().sort((x,y)=>x-y),k=s.length,h=Math.floor(k/2);
-  return {min:s[0],q1:median(s.slice(0,h)),med:median(s),q3:median(s.slice(k%2?h+1:h)),max:s[k-1]};}
+const sigXbar=k=>sigma/Math.sqrt(k);
+const tenOK=k=>k<=0.10*N;
 
-// sampling without replacement (partial Fisher–Yates)
+// SRS of size k, without replacement (partial Fisher–Yates)
 function pick(arr,k){const a=arr.slice();for(let i=0;i<k;i++){const j=i+Math.floor(Math.random()*(a.length-i));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,k);}
-function draw(mode,n){
-  if(mode==="srs"){const s=pick(P,n);return {team:s,xbar:mean(s.map(p=>p.xg))};}
-  let team=[],est=0;
-  for(const h of ["D","M","F"]){const s=pick(strata[h],ALLOC[n][h]);team=team.concat(s);est+=(strata[h].length/N)*mean(s.map(p=>p.xg));}
-  return {team,xbar:est};
-}
-const srsSE=n=>sigma/Math.sqrt(n);
-const srsFPC=n=>srsSE(n)*Math.sqrt((N-n)/(N-1));
-function stratSD(n){let v=0;for(const h of ["D","M","F"]){const s=strata[h],Nh=s.length,nh=ALLOC[n][h],m=mean(s.map(p=>p.xg));
-  const S2=s.reduce((t,p)=>t+(p.xg-m)**2,0)/(Nh-1);v+=(Nh/N)**2*(1-nh/Nh)*S2/nh;}return Math.sqrt(v);}
-const theorySD=(mode,n)=>mode==="srs"?srsFPC(n):stratSD(n);
+function draw(k){const s=pick(P,k);return {team:s,xbar:mean(s.map(p=>p.xg))};}
 
 const store={};
-const data=(m=mode,k=n)=>(store[m+k]||(store[m+k]=[]));
-let mode="srs", n=30, busy=false;
+const data=(k=n)=>(store[k]||(store[k]=[]));
+let n=30, busy=false, pendingN=null;
 
 // ---------- population ----------
 function popChart(){
@@ -322,25 +300,23 @@ function popChart(){
   for(let t=0;t<=max;t+=5)g+=`<text x="${x(t)}" y="${H-B+15}" text-anchor="middle">${t}</text>`;
   g+=`<line x1="${x(mu)}" x2="${x(mu)}" y1="${T}" y2="${H-B}" stroke="var(--accent2)" stroke-width="2.5"/><text x="${x(mu)+6}" y="${T+12}" style="fill:var(--accent2);font-weight:600">μ = ${f2(mu)}</text>`;
   const top=P.slice().sort((a,b)=>b.xg-a.xg)[0];
-  g+=`<text x="${W-R}" y="${T+12}" text-anchor="end">max: ${top.name} ${f2(top.xg)}</text>`;
+  g+=`<text x="${W-R}" y="${T+12}" text-anchor="end">skewed right · max: ${top.name} ${f2(top.xg)}</text>`;
   g+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">xG per player (season total)</text>`;
   svg.innerHTML=g;
-  const q=quartiles(P.map(p=>p.xg));
-  const tiles=[["Population size N",N,""],["Population mean μ",f2(mu),"blue"],["Population SD σ",f2(sigma),""],
-    ["Median",f2(q.med),""],["Q1 / Q3",`${f2(q.q1)} / ${f2(q.q3)}`,""],["Min / Max",`${f2(q.min)} / ${f2(q.max)}`,""]];
+  const tiles=[["Population size N",N,""],["Population mean μ",f2(mu),"blue"],["Population SD σ",f2(sigma),""]];
   $("popStats").innerHTML=tiles.map(([l,v,c])=>`<div class="stat"><div class="l">${l}</div><div class="v ${c}">${v}</div></div>`).join("");
 }
 
-// ---------- sampling chart ----------
+// ---------- sampling distribution chart ----------
 function sampChart(){
   const d=data(), svg=$("sampChart"), W=600,H=254,L=34,R=10,T=14,B=40;
-  const sdT=theorySD(mode,n);
+  const sdT=sigXbar(n);
   const lo=0, hi=Math.max(6, d.length?Math.ceil(Math.max(...d)):0);
   const x=v=>L+((v-lo)/(hi-lo))*(W-L-R);
   let g="";
   for(let t=lo;t<=hi;t++)g+=`<line x1="${x(t)}" x2="${x(t)}" y1="${T}" y2="${H-B}" stroke="#1d2b24"/><text x="${x(t)}" y="${H-B+15}" text-anchor="middle">${t}</text>`;
   g+=`<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="#3a4d42"/>`;
-  const showN=$("normTog").checked&&sdT>1e-9, w=0.1;
+  const showN=$("normTog").checked, w=0.1;
   if(!d.length){
     g+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" style="font-size:13px">Draft some squads to start building the distribution</text>`;
   } else if(d.length<=150){
@@ -355,55 +331,43 @@ function sampChart(){
     const nb=Math.ceil((hi-lo)/w), bins=Array(nb).fill(0);
     d.forEach(v=>bins[Math.min(nb-1,Math.floor((v-lo)/w))]++);
     const dens=bins.map(c=>c/(d.length*w)), ymax=Math.max(...dens,1/(sdT*Math.sqrt(2*Math.PI)))*1.05, y=v=>H-B-(v/ymax)*(H-T-B);
-    dens.forEach((v,i)=>{if(v)g+=`<rect x="${x(lo+i*w)+0.4}" y="${y(v)}" width="${x(w)-x(0)-0.8}" height="${H-B-y(v)}" fill="#4c7d63"><title>${f2(lo+i*w)}–${f2(lo+(i+1)*w)}: ${bins[i]} drafts</title></rect>`;});
+    dens.forEach((v,i)=>{if(v)g+=`<rect x="${x(lo+i*w)+0.4}" y="${y(v)}" width="${x(w)-x(0)-0.8}" height="${H-B-y(v)}" fill="#4c7d63"><title>${f2(lo+i*w)}–${f2(lo+(i+1)*w)}: ${bins[i]} trials</title></rect>`;});
     if(showN){let p="";for(let i=0;i<=300;i++){const v=lo+(hi-lo)*i/300,z=(v-mu)/sdT;p+=(i?"L":"M")+x(v).toFixed(1)+" "+y(Math.exp(-z*z/2)/(sdT*Math.sqrt(2*Math.PI))).toFixed(1);}
       g+=`<path d="${p}" fill="none" stroke="#ff9ad5" stroke-width="2.2"/>`;}
     g+=`<text x="${W-R}" y="${T+10}" text-anchor="end" style="font-size:10px">histogram (density), bin = 0.1</text>`;
   }
   if(d.length){const lv=d[d.length-1];g+=`<line x1="${x(lv)}" x2="${x(lv)}" y1="${T}" y2="${H-B}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3"/>`;}
   g+=`<line x1="${x(mu)}" x2="${x(mu)}" y1="${T}" y2="${H-B}" stroke="var(--accent2)" stroke-width="2.5"/><text x="${x(mu)+6}" y="${T+10}" style="fill:var(--accent2);font-weight:600">μ = ${f2(mu)}</text>`;
-  g+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">x̄ = mean xG of the drafted squad (n = ${n})</text>`;
+  g+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">x̄ = sample mean xG (n = ${n})</text>`;
   svg.innerHTML=g;
 }
 
 // ---------- statistics ----------
-function rowStats(m,k){const d=data(m,k);if(!d.length)return null;const q=quartiles(d);
-  return {k:d.length,mean:mean(d),sd:sd(d),min:q.min,max:q.max,med:q.med,pct:d.filter(v=>Math.abs(v-mu)<=0.5).length/d.length};}
+const mark=b=>b?'<span class="ok">✓</span>':'<span class="no">✗</span>';
 function stats(){
-  const s=rowStats(mode,n);
-  $("sK").textContent=s?s.k:0;
-  $("sMx").textContent=s?f2(s.mean):"–";
-  $("sSx").textContent=s&&s.k>1?fx(s.sd):"–";
-  $("sPct").textContent=s?Math.round(100*s.pct)+"%":"–";
-  $("sRange").textContent=s?`${f2(s.min)} / ${f2(s.max)}`:"–";
-  $("sMed").textContent=s?f2(s.med):"–";
-  if(mode==="srs"){$("sThL").textContent="Theory: σ/√n";$("sTh").textContent=f2(srsSE(n));
-    $("sFpcL").textContent="With FPC √((N−n)/(N−1))";$("sFpc").textContent=f2(srsFPC(n));}
-  else{$("sThL").textContent="SRS σ/√n (for comparison)";$("sTh").textContent=f2(srsSE(n));
-    $("sFpcL").textContent="Theory SD, stratified";$("sFpc").textContent=f2(stratSD(n));}
-  const pct=100*n/N;$("sTen").textContent=`${n}/${N} = ${pct.toFixed(1)}% ${pct<=10?"✓":"✗"}`;
-  let rows="";
-  for(const m of ["srs","strat"]){
-    const ks=new Set(Object.keys(store).filter(key=>key.startsWith(m)&&store[key].length).map(key=>+key.slice(m.length)));
-    if(m===mode)ks.add(n);
-    for(const k of [...ks].sort((a,b)=>a-b)){const r=rowStats(m,k);
-    const a=ALLOC[k];const lab=m==="srs"?"SRS":`Stratified ${a.D}-${a.M}-${a.F}`;
-    rows+=`<tr class="${m===mode&&k===n?"cur":""}"><td>${lab}</td><td>${k}</td><td>${r?r.k:0}</td><td>${r?f2(r.mean):"–"}</td><td>${f2(mu)}</td><td>${r&&r.k>1?fx(r.sd):"–"}</td><td>${f2(theorySD(m,k))}</td><td>${r?f2(r.min):"–"}</td><td>${r?f2(r.max):"–"}</td><td>${r?Math.round(100*r.pct)+"%":"–"}</td></tr>`;}}
-  $("cmpBody").innerHTML=rows||`<tr><td colspan="10" style="text-align:center;color:var(--muted)">No simulations yet</td></tr>`;
+  const d=data(), k=d.length, m=k?mean(d):NaN, s=sd(d);
+  $("sK").textContent=k;
+  $("sMx").textContent=k?f2(m):"–";
+  $("sSx").textContent=fx(s);
+  $("sMuX").textContent=f2(mu);
+  $("sTh").textContent=`${f2(sigma)}/√${n} = ${f2(sigXbar(n))}`;
+  $("sTen").innerHTML=`${n} ≤ ${(0.10*N).toFixed(1)} ${mark(tenOK(n))}`;
+  $("sShape").innerHTML=n>=30?`n = ${n} ≥ 30 ${mark(true)} approx. Normal by the CLT`:`n = ${n} < 30 ${mark(false)} can't assume Normal`;
+  $("interp").innerHTML=`<b>Interpretation (σ<sub>x̄</sub>):</b> In SRSs of size ${n}, the sample mean xG typically varies by about <b>${f2(sigXbar(n))} xG</b> from the true mean μ = ${f2(mu)} xG.`+
+    (tenOK(n)?"":` <span class="no">The 10% condition is not met, so this σ/√n value overstates the real spread.</span>`);
+  const ks=Object.keys(store).map(Number).filter(v=>store[v].length);if(!ks.includes(n))ks.push(n);
+  $("cmpBody").innerHTML=ks.sort((a,b)=>a-b).map(v=>{const dd=data(v),kk=dd.length;
+    return `<tr class="${v===n?"cur":""}"><td>${v}</td><td>${kk}</td><td>${kk?f2(mean(dd)):"–"}</td><td>${f2(mu)}</td><td>${fx(sd(dd))}</td><td>${f2(sigXbar(v))}</td><td>${mark(tenOK(v))}</td><td>${mark(v>=30)}</td></tr>`;}).join("");
 }
 function labels(){
-  const a=ALLOC[n];
-  $("modeLabel").textContent=mode==="srs"?`SRS, n = ${n}`:`Stratified ${a.D} DEF · ${a.M} MID · ${a.F} FWD, n = ${n}`;
-  $("normTxt").textContent=mode==="srs"?`Normal model N(μ, ${f2(srsFPC(n))})`:`Normal model N(μ, ${f2(stratSD(n))})`;
-  $("emptySub").textContent=mode==="srs"?`${n} players are drawn at random from the population`:`${a.D} defenders, ${a.M} midfielders and ${a.F} forwards are drawn at random`;
+  $("modeLabel").textContent=`SRS, n = ${n}`;
+  $("normTxt").textContent=`Normal model N(μ, σ/√n) = N(${f2(mu)}, ${f2(sigXbar(n))})`;
+  $("emptySub").textContent=`An SRS of ${n} player${n>1?"s":""} is drawn from the population`;
   $("formation").textContent=`n = ${n}`;
   $("pitch").classList.toggle("big",n>11);
   $("pitch").classList.toggle("huge",n>60);
   document.querySelectorAll("#sizeSeg button").forEach(b=>b.classList.toggle("on",+b.dataset.n===n));
   const cin=$("customN"); if(!PRESETS.includes(n)) cin.value=n; else if(document.activeElement!==cin) cin.value="";
-  cin.max=N;
-  const sb=document.querySelector('#modeSeg button[data-mode="strat"]');
-  sb.disabled=n<STRAT_MIN; sb.title=n<STRAT_MIN?`Stratified sampling needs n ≥ ${STRAT_MIN} (one player per position)`:"Stratified by position, proportional allocation";
 }
 
 // ---------- pitch ----------
@@ -427,50 +391,42 @@ function showTeam(res,animate){
   $("rows").innerHTML=["F","M","D"].filter(k=>by[k].length).map(k=>`<div class="row">${rh[k]}</div>`).join("");
   $("empty").style.display="none";$("board").style.display="flex";
   $("formation").textContent=`Drawn: ${by.D.length} DEF · ${by.M.length} MID · ${by.F.length} FWD · n = ${n}`;
-  $("draftNo").textContent=`Draft #${data().length}`;
+  $("draftNo").textContent=`Trial #${data().length}`;
   const xs=res.team.map(p=>p.xg), tot=sum(xs);
   $("vals").innerHTML=res.team.slice().sort((a,b)=>b.xg-a.xg).map(p=>`<span title="${p.name}">${p.xg.toFixed(2)}</span>`).join("");
-  if(mode==="srs")$("eq").innerHTML=`x̄ = Σx / n = ${f2(tot)} / ${n} = <b>${f2(res.xbar)}</b>`;
-  else{const parts=["D","M","F"].map(h=>`${(strata[h].length/N).toFixed(2)}·${f2(mean(by[h].map(p=>p.xg)))}`);
-    $("eq").innerHTML=`x̄<sub>strat</sub> = Σ (N<sub>h</sub>/N)·x̄<sub>h</sub> = ${parts.join(" + ")} = <b>${f2(res.xbar)}</b>`;}
-  const q=quartiles(xs);
-  const ms=[["n",n],["Σx",f2(tot)],["Mean x̄",f2(mean(xs))],["SD s",fx(sd(xs))],["Min",fx(q.min)],["Q1",fx(q.q1)],["Median",fx(q.med)],["Q3",fx(q.q3)],["Max",fx(q.max)]];
+  $("eq").innerHTML=`x̄ = Σx / n = ${f2(tot)} / ${n} = <b>${f2(res.xbar)}</b>`;
+  const ms=[["Sample size n",n],["Sample mean x̄",f2(res.xbar)],["Sample SD s<sub>x</sub>",fx(sd(xs))]];
   $("sampStats").innerHTML=ms.map(([l,v])=>`<div><div class="l">${l}</div><div class="v">${v}</div></div>`).join("");
   $("calc").style.display="block";
   if(animate){$("xbarBig").textContent="…";setTimeout(()=>{$("xbarBig").textContent=f2(res.xbar);},animMs());}
   else $("xbarBig").textContent=f2(res.xbar);
 }
 
+// ---------- controls ----------
 const BTN=["draft1","draft10","draft100","draft1000","reset","fillAll"];
 function setBusy(b){busy=b;BTN.forEach(i=>$(i).disabled=b);}
 function refresh(){sampChart();stats();}
 function draftOne(){
   if(busy)return;setBusy(true);
-  const r=draw(mode,n);data().push(r.xbar);showTeam(r,true);
+  const r=draw(n);data().push(r.xbar);showTeam(r,true);
   setTimeout(()=>{refresh();setBusy(false);if(pendingN!==null){const v=pendingN;pendingN=null;setN(v);}},animMs());
 }
 function draftMany(k){
   if(busy)return;let r;
-  for(let i=0;i<k;i++){r=draw(mode,n);data().push(r.xbar);}
+  for(let i=0;i<k;i++){r=draw(n);data().push(r.xbar);}
   showTeam(r,false);refresh();
 }
 $("draft1").onclick=draftOne;
 $("draft10").onclick=()=>draftMany(10);
 $("draft100").onclick=()=>draftMany(100);
 $("draft1000").onclick=()=>draftMany(1000);
-$("fillAll").onclick=()=>{if(busy)return;for(const k of PRESETS){if(mode==="strat"&&k<STRAT_MIN)continue;for(let i=0;i<1000;i++)data(mode,k).push(draw(mode,k).xbar);}refresh();};
-$("reset").onclick=()=>{store[mode+n]=[];clearPitch();labels();refresh();};
+$("fillAll").onclick=()=>{if(busy)return;for(const k of PRESETS)for(let i=0;i<1000;i++)data(k).push(draw(k).xbar);refresh();};
+$("reset").onclick=()=>{store[n]=[];clearPitch();labels();refresh();};
 $("normTog").onchange=sampChart;
-function bindSeg(id,attr,apply){document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{
-  if(busy)return;apply(b.dataset[attr]);
-  document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.toggle("on",x===b));
-  clearPitch();labels();refresh();});}
-let pendingN=null;
+
 function setN(v){
   if(busy){pendingN=v;return;}           // a draft is animating: apply as soon as it finishes
-  n=v;
-  if(n<STRAT_MIN&&mode==="strat"){mode="srs";document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.toggle("on",x.dataset.mode==="srs"));}
-  clearPitch();labels();refresh();
+  n=v;clearPitch();labels();refresh();
 }
 function applyCustom(){
   const inp=$("customN"),raw=inp.value.trim(),v=Number(raw);
@@ -483,10 +439,11 @@ document.querySelectorAll("#sizeSeg button").forEach(b=>b.onclick=()=>{$("custom
 $("setN").addEventListener("click",applyCustom);
 $("customN").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();applyCustom();}});
 $("customN").addEventListener("input",()=>{$("customN").classList.remove("bad");$("customMsg").textContent="";});
-bindSeg("modeSeg","mode",v=>{mode=v;});
 
 document.querySelectorAll(".Nval").forEach(e=>e.textContent=N);
-$("popTag").textContent=`${N} players · ${strata.D.length} DEF · ${strata.M.length} MID · ${strata.F.length} FWD`;
+document.querySelectorAll(".muval").forEach(e=>e.textContent=f2(mu));
+const cnt=pos=>P.filter(p=>p.pos===pos).length;
+$("popTag").textContent=`N = ${N} players · ${cnt("D")} DEF · ${cnt("M")} MID · ${cnt("F")} FWD`;
 popChart();labels();refresh();
 </script>
 </body>
